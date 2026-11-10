@@ -1,0 +1,48 @@
+# Trained model weights and large archives
+*.pt
+*.pth
+*.ckpt
+*.joblib
+*.pkl
+*.safetensors
+*.zip
+*.tar
+*.tar.gz
+
+# Local data (upload separately in Colab)
+*.csv
+*.parquet
+*.feather
+
+# Python caches and local environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Jupyter / Colab temporary artifacts
+.ipynb_checkpoints/
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.key
+
+# Generated model directories and outputs
+complaint_app/model/
+xlmr_tokenizer/
+kazroberta_tokenizer/
+outputs/
+checkpoints/
+logs/
+
+# OS and IDE files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
