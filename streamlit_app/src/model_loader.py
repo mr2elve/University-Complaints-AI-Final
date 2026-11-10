@@ -1,11 +1,12 @@
-"""Exact notebook cell 15 architecture; no pretrained weights are downloaded."""
+"""Exact notebook cell 15 architecture with local-first trained artifact setup."""
 from dataclasses import dataclass
 from pathlib import Path
 import threading
 import torch
 from torch import nn
 from transformers import AutoConfig, AutoModel, PreTrainedTokenizerFast
-from src.config import MODEL_DIR, TARGETS, read_config
+from src.config import MODEL_DIR, TARGETS
+from src.model_artifacts import ensure_model_artifacts
 
 
 class MultiTaskKazRoBERTa(nn.Module):
@@ -33,17 +34,15 @@ class ModelBundle:
     lock: threading.Lock
 
 
-def load_model(model_dir=MODEL_DIR):
+def load_model(model_dir=MODEL_DIR, *, allow_download=True):
     path = Path(model_dir)
-    config = read_config(path)
-    for filename in ('model.pt', 'tokenizer.json', 'tokenizer_config.json', 'encoder_config.json'):
-        if not (path / filename).is_file():
-            raise FileNotFoundError(f'Missing {path / filename}. Run scripts/setup_model.py; inference needs all model artifacts.')
+    config = ensure_model_artifacts(path, allow_download=allow_download)
     encoder_config = AutoConfig.from_pretrained(str(path / 'encoder_config.json'), local_files_only=True)
     # Eager attention avoids backend-dependent changes and supports ordinary CPUs.
     encoder_config._attn_implementation = 'eager'
     model = MultiTaskKazRoBERTa(encoder_config, config['label_maps'])
-    state = torch.load(path / 'model.pt', map_location='cpu', weights_only=True)
+    # Memory mapping avoids allocating a second full checkpoint buffer on Cloud.
+    state = torch.load(path / 'model.pt', map_location='cpu', weights_only=True, mmap=True)
     model.load_state_dict(state, strict=True)
     model.cpu().eval()
     # Loading the complete exported tokenizers graph preserves its postprocessor.

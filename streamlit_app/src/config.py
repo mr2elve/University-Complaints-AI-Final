@@ -4,6 +4,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 MODEL_DIR = Path(os.environ.get('COMPLAINT_MODEL_DIR', ROOT / 'model'))
+MODEL_REPO_ID = os.environ.get('COMPLAINT_MODEL_REPO', 'mr2elve/kazroberta-university-complaints')
+MODEL_REVISION = os.environ.get('COMPLAINT_MODEL_REVISION', 'main')
 DB_PATH = Path(os.environ.get('COMPLAINT_DB_PATH', ROOT / 'data' / 'complaints.sqlite3'))
 TARGETS = ('category', 'urgency', 'tone', 'department')
 STATUSES = ('New', 'Pending Review', 'Assigned', 'In Progress', 'Resolved', 'Closed')
@@ -14,7 +16,7 @@ MAX_BATCH_ROWS = 1000
 def read_config(model_dir=MODEL_DIR):
     path = Path(model_dir) / 'config.json'
     if not path.exists():
-        raise FileNotFoundError(f'Missing {path}. Run scripts/setup_model.py with your exported ZIP.')
+        raise FileNotFoundError(f'Missing {path}. Run python scripts/setup_model.py to download the trained export.')
     config = json.loads(path.read_text(encoding='utf-8'))
     if config.get('targets') != list(TARGETS):
         raise ValueError('Checkpoint head order must be category, urgency, tone, department.')

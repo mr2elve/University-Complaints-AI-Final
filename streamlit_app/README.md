@@ -24,12 +24,14 @@ Use Python 3.11. The tested environment is Apple Silicon macOS with the CPU buil
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-python scripts/setup_model.py /path/to/KazRoBERTa_Trained_Model.zip
+python scripts/setup_model.py  # optional: pre-download before starting Streamlit
 python scripts/smoke_test.py
 streamlit run app.py
 ```
 
-If `python` resolves to a different version on your Mac, create the environment with `python3.11 -m venv .venv`. The application requirements contain six runtime dependencies, separate from the Colab research environment. Tested direct dependency versions are pinned; there are no CUDA-specific requirements.
+Run these commands from `streamlit_app/`. If `python` resolves to a different version on your Mac, create the environment with `python3.11 -m venv .venv`. The application requirements are separate from the root Colab research requirements. Linux and Windows explicitly select `torch==2.15.0+cpu` from the official PyTorch CPU index, avoiding NVIDIA CUDA dependencies; macOS uses its native wheel.
+
+For Streamlit Community Cloud, use entrypoint `streamlit_app/app.py` and Python 3.11. [Community Cloud selects the requirements beside the entrypoint before the repository root](https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/app-dependencies), so it uses `streamlit_app/requirements.txt`. No manual model upload or setup command is required: the first analysis loads the model and downloads missing artifacts automatically.
 
 ### Model placement and offline operation
 
@@ -42,24 +44,29 @@ model/
   encoder_config.json      # base RoBERTa architecture, ~636 bytes
 ```
 
-`setup_model.py` reads only the four expected files from the trusted ZIP, preventing arbitrary archive-path extraction. If needed, it downloads **only the small base encoder configuration** from [the original KazRoBERTa repository](https://huggingface.co/kz-transformers/kaz-roberta-conversational/blob/main/config.json). It does not download base model weights. The export’s `config.json` is an application configuration, so it must not be replaced with the encoder configuration.
+The loader and `setup_model.py` share the same setup code. They download only missing `model.pt`, `config.json`, `tokenizer.json`, and `tokenizer_config.json` from [the published trained export](https://huggingface.co/mr2elve/kazroberta-university-complaints). Existing local files are preserved. If needed, they also fetch **only the small base encoder configuration** from the original repository named in the export's `model_name`. Base model weights are never downloaded. The export's `config.json` is an application configuration, so it is kept separate from `encoder_config.json`.
+
+Files live in `streamlit_app/model/` regardless of the launch directory, or in `COMPLAINT_MODEL_DIR` when set. Hugging Face keeps download metadata and resumable partial files in `model/.cache/huggingface/`; the base configuration has a separate cache under `model/.cache/encoder/`. [This local-directory cache avoids redundant downloads](https://huggingface.co/docs/huggingface_hub/guides/download#download-files-to-a-local-folder). All these artifacts remain Git-ignored. Community Cloud may clear local storage on rebuild, in which case the next load downloads them again.
+
+If a download fails, the existing application error panel reports the affected file and repository. Completed local files are retained, and retrying fetches only missing files. Inference remains unavailable until the real checkpoint loads successfully.
 
 For a fully offline setup, supply a previously obtained encoder config:
 
 ```bash
 python scripts/setup_model.py /path/to/KazRoBERTa_Trained_Model.zip \
-  --encoder-config /path/to/encoder_config.json
+  --encoder-config /path/to/encoder_config.json --offline
 ```
 
-After setup, inference is fully local: no Hub requests are made during loading or prediction. `st.cache_resource` keeps one loaded model per server process, with a lock around inference. Restart Streamlit after replacing model files.
+The ZIP path remains supported and reads only the four expected files, preventing arbitrary archive-path extraction. Once all five files exist, loading and inference make no Hub requests. `load_model(allow_download=False)` or `setup_model.py --offline` explicitly disables downloads. `st.cache_resource` keeps one loaded model per server process, with a lock around inference. CPU checkpoint loading uses memory mapping to reduce peak memory. Restart Streamlit after replacing model files.
 
-The trained weights have **not been assumed to exist in a public repository**. If you later publish the trained export in a Hugging Face repository with the four files at its root, use:
+To select a different trusted export or pin a revision, use a fresh model directory:
 
 ```bash
-python scripts/setup_model.py --hub-repo YOUR_ACCOUNT/YOUR_TRAINED_EXPORT --revision COMMIT_SHA
+python scripts/setup_model.py --hub-repo YOUR_ACCOUNT/YOUR_TRAINED_EXPORT \
+  --revision COMMIT_SHA --model-dir /path/to/new/model
 ```
 
-Keep model weights outside Git. Use only a trusted checkpoint; the loader uses PyTorch `weights_only=True` and strict state-dictionary matching.
+The application equivalents are `COMPLAINT_MODEL_REPO`, `COMPLAINT_MODEL_REVISION` (default `main`), and `COMPLAINT_MODEL_DIR`. Changing repository or revision does not replace existing local files. Keep model weights outside Git. Use only a trusted checkpoint; the loader uses PyTorch `weights_only=True` and strict state-dictionary matching.
 
 ## Seven application sections
 
@@ -222,7 +229,7 @@ Use a fresh disposable database: this script saves an illustrative complaint. It
 
 | Symptom | Action |
 |---|---|
-| Missing `model.pt` / tokenizer / encoder config | Run `scripts/setup_model.py` with your trusted export. |
+| Model download failed | Check Hub/network access and retry analysis, or run `python scripts/setup_model.py`. Existing files are retained. Offline setup supports a trusted ZIP and `--encoder-config`. |
 | Cannot obtain base configuration | Use `--encoder-config` with a previously downloaded file; do not substitute the app config. |
 | Checkpoint key/shape mismatch | Verify the original trained multi-task export and base config. The loader intentionally fails instead of generating dummy results. |
 | Wrong Python / no compatible PyTorch wheel | Use native Apple Silicon Python 3.11 on macOS 14+. Older OS versions require a separately validated compatible PyTorch environment. |
@@ -236,4 +243,8 @@ Use a fresh disposable database: this script saves an illustrative complaint. It
 
 ## Verified delivery
 
-The final local run passed **32 tests**, the actual CPU model smoke test, and a Chrome navigation/rendering check. Desktop/mobile screenshots are included. See [VALIDATION.md](VALIDATION.md) for the verification scope and remaining limitations, and [model checksums](data/research/model_checksums.json) for the artifacts used.
+The automatic Hub loading update was verified on 2026-11-10 with **44 passing tests**, including the existing seven-page Streamlit tests and real-checkpoint integration tests. A separate empty-directory test downloaded the published model automatically, loaded it on CPU, and analyzed a real Kazakh complaint; an offline reload produced identical probabilities. The smoke script passed on three Kazakh complaints (scheduling, dormitory hot water, and tuition payment). All five downloaded artifacts matched the recorded [SHA-256 checksums](data/research/model_checksums.json).
+
+A Linux x86_64 / Python 3.11 dependency dry run selected `torch==2.15.0+cpu` and no NVIDIA, CUDA, cuDNN, or Triton packages. Runtime tests ran on Apple Silicon macOS with CPU inference; the live Community Cloud deployment was not changed by these local checks.
+
+The earlier delivery also included a Chrome navigation/rendering check and desktop/mobile screenshots. See [VALIDATION.md](VALIDATION.md) for that earlier verification scope and remaining limitations.

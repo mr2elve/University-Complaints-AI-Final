@@ -18,7 +18,7 @@ def test_invalid_input(text):
 
 
 def test_missing_model_fails(tmp_path):
-    with pytest.raises(FileNotFoundError):load_model(tmp_path)
+    with pytest.raises(FileNotFoundError):load_model(tmp_path, allow_download=False)
 
 @pytest.mark.model
 def test_model_shape_and_mapping(bundle):
