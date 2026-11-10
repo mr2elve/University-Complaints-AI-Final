@@ -1,0 +1,5 @@
+Model,category,urgency,tone,department,mean_macro_f1,missed_high,total_high
+Linear SVM,0.9867,0.9722,1.0000,0.9334,0.9731,3,38
+BiLSTM + Attention,0.9733,0.9790,1.0000,0.8642,0.9541,3,38
+XLM-RoBERTa,0.9798,0.9313,0.9681,0.9000,0.9448,5,38
+KazRoBERTa,0.9933,0.9510,0.9844,0.9128,0.9604,5,38

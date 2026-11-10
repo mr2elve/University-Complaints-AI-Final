@@ -1,0 +1,7 @@
+{
+  "model.pt": "fbcb15f5f5085c721361ea03d25cdb27f1186553e3471147754a96ac7995e592",
+  "config.json": "4faa4d29cd09a1d4826dd6b49e0a8bc93cfd27f5ec30eee15bd28a34e9d70bd9",
+  "encoder_config.json": "b3cfd36980f393a022972559e8399f3c50d76898cd16c6b5b0a34309c424a835",
+  "tokenizer.json": "53501d382c3d6ea1c2b17f0f6a4c01e6fae89d1e33493c859cc41f0501ff4f6f",
+  "tokenizer_config.json": "1ae26e80acf5f55f42c143fbdfd72ecbd955e26398f16874a84c080b640a57cc"
+}

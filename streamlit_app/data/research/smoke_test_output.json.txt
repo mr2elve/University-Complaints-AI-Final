@@ -1,0 +1,141 @@
+[
+  {
+    "text": "Сабақ кестесі дұрыс жасалмаған. Екі пән бір уақытта тұр.",
+    "normalized_text": "Сабақ кестесі дұрыс жасалмаған. Екі пән бір уақытта тұр.",
+    "predictions": {
+      "category": "academic_process",
+      "urgency": "medium",
+      "tone": "dissatisfied",
+      "department": "academic_affairs"
+    },
+    "probabilities": {
+      "category": {
+        "academic_process": 0.9875373244285583,
+        "administrative_services": 0.0016829593805596232,
+        "campus_environment": 0.01077975146472454
+      },
+      "urgency": {
+        "high": 0.030298197641968727,
+        "low": 0.03531656786799431,
+        "medium": 0.9343852400779724
+      },
+      "tone": {
+        "dissatisfied": 0.3865572512149811,
+        "intense_negative": 0.2757434546947479,
+        "neutral": 0.3376993238925934
+      },
+      "department": {
+        "academic_affairs": 0.815629780292511,
+        "facilities_office": 0.020620448514819145,
+        "faculty_dean_office": 0.152845099568367,
+        "finance_office": 0.0038283872418105602,
+        "security_ombudsperson": 0.0037445775233209133,
+        "student_service_center": 0.0033317399211227894
+      }
+    },
+    "truncated": false,
+    "routing_confidence": 0.815629780292511,
+    "high_urgency_probability": 0.030298197641968727,
+    "requires_review": false,
+    "review_reasons": [
+      "Eligible for automatic routing"
+    ],
+    "operational_priority": "medium",
+    "suggested_sla_hours": 24,
+    "confidence_threshold": 0.75,
+    "urgent_review_threshold": 0.3
+  },
+  {
+    "text": "Жатақханада бірнеше күннен бері ыстық су жоқ. Студенттер қатты қиналып жатыр.",
+    "normalized_text": "Жатақханада бірнеше күннен бері ыстық су жоқ. Студенттер қатты қиналып жатыр.",
+    "predictions": {
+      "category": "campus_environment",
+      "urgency": "medium",
+      "tone": "dissatisfied",
+      "department": "facilities_office"
+    },
+    "probabilities": {
+      "category": {
+        "academic_process": 0.0018170056864619255,
+        "administrative_services": 0.01571745239198208,
+        "campus_environment": 0.9824655055999756
+      },
+      "urgency": {
+        "high": 0.23899784684181213,
+        "low": 0.027820244431495667,
+        "medium": 0.733181893825531
+      },
+      "tone": {
+        "dissatisfied": 0.6900004148483276,
+        "intense_negative": 0.13648688793182373,
+        "neutral": 0.17351269721984863
+      },
+      "department": {
+        "academic_affairs": 0.0033349134027957916,
+        "facilities_office": 0.7796141505241394,
+        "faculty_dean_office": 0.0024089969228953123,
+        "finance_office": 0.006068181712180376,
+        "security_ombudsperson": 0.19291706383228302,
+        "student_service_center": 0.015656648203730583
+      }
+    },
+    "truncated": false,
+    "routing_confidence": 0.733181893825531,
+    "high_urgency_probability": 0.23899784684181213,
+    "requires_review": true,
+    "review_reasons": [
+      "Low prediction confidence"
+    ],
+    "operational_priority": "medium",
+    "suggested_sla_hours": 24,
+    "confidence_threshold": 0.75,
+    "urgent_review_threshold": 0.3
+  },
+  {
+    "text": "Оқу ақысын төледім, бірақ жүйеде төлем көрсетілмейді. Осы мәселені шешуге көмектесіңіздер.",
+    "normalized_text": "Оқу ақысын төледім, бірақ жүйеде төлем көрсетілмейді. Осы мәселені шешуге көмектесіңіздер.",
+    "predictions": {
+      "category": "administrative_services",
+      "urgency": "medium",
+      "tone": "neutral",
+      "department": "finance_office"
+    },
+    "probabilities": {
+      "category": {
+        "academic_process": 0.0017750585684552789,
+        "administrative_services": 0.9910216927528381,
+        "campus_environment": 0.007203327491879463
+      },
+      "urgency": {
+        "high": 0.087300144135952,
+        "low": 0.01664501428604126,
+        "medium": 0.8960548043251038
+      },
+      "tone": {
+        "dissatisfied": 0.27752891182899475,
+        "intense_negative": 0.012005897238850594,
+        "neutral": 0.7104652523994446
+      },
+      "department": {
+        "academic_affairs": 0.003037188434973359,
+        "facilities_office": 0.00464277621358633,
+        "faculty_dean_office": 0.0015722494572401047,
+        "finance_office": 0.9575389623641968,
+        "security_ombudsperson": 0.0073232268914580345,
+        "student_service_center": 0.02588566020131111
+      }
+    },
+    "truncated": false,
+    "routing_confidence": 0.8960548043251038,
+    "high_urgency_probability": 0.087300144135952,
+    "requires_review": false,
+    "review_reasons": [
+      "Eligible for automatic routing"
+    ],
+    "operational_priority": "medium",
+    "suggested_sla_hours": 24,
+    "confidence_threshold": 0.75,
+    "urgent_review_threshold": 0.3
+  }
+]
+PASS: strict CPU checkpoint load and real inference on three Kazakh complaints.

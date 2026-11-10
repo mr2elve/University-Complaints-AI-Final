@@ -1,0 +1,32 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Trained models
+*.pt
+*.pth
+*.safetensors
+*.joblib
+*.pkl
+*.zip
+
+# Databases and private data
+*.db
+*.sqlite
+*.sqlite3
+*.db-wal
+*.db-shm
+data/uploads/
+
+# Secrets
+.env
+.env.*
+!.env.example
+secrets.toml
+
+# System
+.DS_Store
+.ipynb_checkpoints/

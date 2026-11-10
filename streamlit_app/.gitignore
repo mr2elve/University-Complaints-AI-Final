@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+model/*
+!model/README.md
+data/*.sqlite*
+data/uploads/
+*.pt
+*.zip
+.env
+.DS_Store
