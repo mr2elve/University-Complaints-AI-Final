@@ -9,6 +9,28 @@ import pytest
 
 APP_DIR = Path(__file__).resolve().parents[1]
 
+
+def test_translation_public_import_in_fresh_process(tmp_path):
+    """Exercise the exact Cloud failure before the app can preload any module."""
+    code = '''
+import sys
+from pathlib import Path
+assert 'src.translations' not in sys.modules
+from src.translations import t, error_text
+import src.translations as translations
+assert callable(t) and callable(error_text)
+assert Path(translations.__file__).resolve() == Path('src/translations.py').resolve()
+print('TRANSLATION_IMPORT_OK')
+'''
+    process = subprocess.run(
+        [sys.executable, '-E', '-s', '-B', '-X', f'pycache_prefix={tmp_path / "bytecode"}',
+         '-c', code],
+        cwd=APP_DIR, capture_output=True, text=True, encoding='utf-8', timeout=60,
+    )
+    assert process.returncode == 0, process.stdout + process.stderr
+    assert 'TRANSLATION_IMPORT_OK' in process.stdout
+
+
 SMOKE = r'''
 import ast
 import importlib

@@ -1,3 +1,4 @@
+# Cloud rebuild marker: EN/KK/RU translation API (t + error_text); pins unchanged.
 streamlit==1.67.0
 # Linux/Windows use the explicit CPU build; macOS wheels are CPU-capable by default.
 --extra-index-url https://download.pytorch.org/whl/cpu
