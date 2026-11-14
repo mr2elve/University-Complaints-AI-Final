@@ -24,3 +24,7 @@ Source: [multilingual export](https://huggingface.co/mr2elve/xlmr-university-com
 - The config/model card specify masked mean pooling, dropout 0.2, four linear heads, XLM-R base and a 128-token limit. The checkpoint's named `heads.<task>.weight/bias` tensors establish `ModuleDict` structure. All 207 tensors load strictly (278,055,183 parameters). The original notebook's cell 13 corroborates pooling, but its numbered heads are not the new checkpoint's architecture.
 
 The original research results, screenshots and validation files remain historical evidence. The new translation-grouped split and synthetic mixed-language test are separate experiments, not replacements for the original comparison table. Routing thresholds were preserved as application policy and were not recalibrated on the new export.
+
+## Localized SVM matrix display — 14 November 2026
+
+`svm_confusion_matrices.json` contains the numerical cell annotations transcribed directly from `assets/svm_test_confusion_matrices.png` (the original notebook cell 19 figure). Rows are true classes and columns are predicted classes, in each recorded label order. The original PNG remains unchanged and downloadable. The Model Analytics page renders the same counts with localized labels so the interface does not display untranslated axes or raw model identifiers. Tests verify that each task totals 150 observations and reproduces the reported SVM Macro-F1 to the published four-decimal precision. No new evaluation results or synthetic matrices were introduced.

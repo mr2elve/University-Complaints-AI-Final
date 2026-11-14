@@ -1,72 +1,89 @@
+"""Presentation-only localization. Database values and model labels stay canonical."""
+from datetime import datetime
+import json
+import logging
+from pathlib import Path
+from zoneinfo import ZoneInfo
+import pandas as pd
 import streamlit as st
 
+LANGUAGES = {'English': 'en', 'Қазақша': 'kk', 'Русский': 'ru'}
+LOCALE_DIR = Path(__file__).resolve().parents[1] / 'locales'
+TRANSLATIONS = {code: json.loads((LOCALE_DIR / f'{code}.json').read_text(encoding='utf-8'))
+                for code in LANGUAGES.values()}
 
-def t(english, kazakh):
-    return kazakh if st.session_state.get('language') == 'Қазақша' else english
+
+def language():
+    return LANGUAGES.get(st.session_state.get('language', 'English'), 'en')
 
 
-LABELS = {
-    'category': ('Category', 'Санат'), 'urgency': ('Urgency', 'Шұғылдық'),
-    'tone': ('Tone', 'Эмоциялық реңк'), 'department': ('Department', 'Бөлім'),
-    'academic_process': ('Academic process', 'Оқу үдерісі'),
-    'administrative_services': ('Administrative services', 'Әкімшілік қызметтер'),
-    'campus_environment': ('Campus environment', 'Кампус ортасы'),
-    'high': ('High', 'Жоғары'), 'medium': ('Medium', 'Орташа'), 'low': ('Low', 'Төмен'),
-    'neutral': ('Neutral', 'Бейтарап'), 'dissatisfied': ('Dissatisfied', 'Көңілі толмаған'),
-    'intense_negative': ('Intense negative', 'Қатты наразылық'),
-    'academic_affairs': ('Academic affairs', 'Академиялық мәселелер бөлімі'),
-    'faculty_dean_office': ("Faculty dean’s office", 'Факультет деканаты'),
-    'student_service_center': ('Student service center', 'Студенттерге қызмет көрсету орталығы'),
-    'facilities_office': ('Facilities office', 'Шаруашылық бөлімі'),
-    'finance_office': ('Finance office', 'Қаржы бөлімі'),
-    'security_ombudsperson': ('Security / ombudsperson', 'Қауіпсіздік / омбудсмен'),
-    'New': ('New', 'Жаңа'), 'Pending Review': ('Pending Review', 'Тексеруді күтуде'),
-    'Assigned': ('Assigned', 'Тағайындалды'), 'In Progress': ('In Progress', 'Орындалуда'),
-    'Resolved': ('Resolved', 'Шешілді'), 'Closed': ('Closed', 'Жабылды'),
-    'Low prediction confidence': ('Low prediction confidence', 'Болжам сенімділігі төмен'),
-    'Potentially high urgency': ('Potentially high urgency', 'Шұғыл болуы мүмкін'),
-    'Eligible for automatic routing': ('Eligible for automatic routing', 'Автоматты бағыттауға жарамды'),
-}
+def translate(key, locale, **values):
+    # Missing keys fail loudly in development/tests instead of leaking English.
+    return TRANSLATIONS[locale][key].format(**values)
+
+
+def t(key, **values):
+    return translate(key, language(), **values)
 
 
 def label(value):
-    if value is None:
-        return t('Unassigned', 'Тағайындалмаған')
-    return t(*LABELS[value]) if value in LABELS else str(value)
+    if value is None or (not isinstance(value, str) and pd.isna(value)):
+        value = 'Unassigned'
+    key = f'labels.{value}'
+    return t(key) if key in TRANSLATIONS['en'] else str(value)
 
 
 def label_formatter():
-    # Capture language at render time so widget formatting stays stable across reruns.
-    translated = {key: t(*values) for key, values in LABELS.items()}
-    translated[None] = t('Unassigned', 'Тағайындалмаған')
-    translated['Unassigned'] = translated[None]
-    return lambda value: translated.get(value, str(value))
-
-COLUMNS = {
- 'id': ('ID','ID'), 'complaint_text':('Complaint','Шағым'), 'text':('Text','Мәтін'),
- 'predicted_category':('AI category','AI санаты'), 'predicted_urgency':('AI urgency','AI шұғылдығы'),
- 'predicted_tone':('AI tone','AI реңкі'), 'predicted_department':('AI department','AI бөлімі'),
- 'effective_urgency':('Current urgency','Ағымдағы шұғылдық'),
- 'assigned_department':('Assigned department','Тағайындалған бөлім'), 'status':('Status','Мәртебе'),
- 'submitted_at':('Submitted · Almaty','Тіркелген · Алматы'), 'resolved_at':('Resolved · Almaty','Шешілген · Алматы'),
- 'reviewed_at':('Reviewed · Almaty','Тексерілген · Алматы'), 'timestamp':('Changed · Almaty','Өзгертілген · Алматы'),
- 'routing_confidence':('Routing confidence','Бағыттау сенімділігі'),
- 'high_urgency_probability':('P(high urgency)','P(жоғары шұғылдық)'),
- 'requires_review':('AI review flag','AI тексеру белгісі'), 'review_reasons':('Routing reasons','Бағыттау себептері'),
- 'admin_notes':('Administrator notes','Әкімші ескертпелері'), 'review_notes':('Review notes','Тексеру ескертпелері'),
- 'previous_notes':('Previous notes','Алдыңғы ескертпелер'), 'action':('Action','Әрекет'),
- 'previous_status':('Previous status','Алдыңғы мәртебе'), 'new_status':('New status','Жаңа мәртебе'),
- 'previous_department':('Previous department','Алдыңғы бөлім'), 'new_department':('New department','Жаңа бөлім'),
- 'previous_urgency':('Previous urgency','Алдыңғы шұғылдық'), 'new_urgency':('New urgency','Жаңа шұғылдық'),
- 'row':('Source row','Бастапқы жол'), 'error':('Validation error','Тексеру қатесі'),
- 'operational_priority':('Review priority','Тексеру басымдығы'), 'suggested_sla_hours':('Example SLA · hours','SLA мысалы · сағат'),
- 'truncated':('Truncated to 96 tokens','96 токенге қысқартылған'),
- 'Model':('Model','Модель'), 'mean_macro_f1':('Mean Macro-F1','Орташа Macro-F1'),
- 'threshold':('Threshold','Шек'), 'coverage':('Auto-routing coverage','Автоматты бағыттау үлесі'),
- 'routing_accuracy':('Routing accuracy','Бағыттау дәлдігі'), 'manual_review':('Manual review share','Қолмен тексеру үлесі'),
- 'missed_urgent_auto_routed':('Missed urgent · auto-routed','Анықталмаған шұғыл · авто бағытталған'),
-}
+    locale = language()
+    labels = {key.removeprefix('labels.'): value for key, value in TRANSLATIONS[locale].items()
+              if key.startswith('labels.')}
+    labels[None] = labels['Unassigned']
+    return lambda value: labels.get(value, str(value))
 
 
 def column_labels(columns):
-    return {c:t(*COLUMNS[c]) if c in COLUMNS else label(c) for c in columns}
+    return {column: t(f'columns.{column}') if f'columns.{column}' in TRANSLATIONS['en'] else label(column)
+            for column in columns}
+
+
+def display_time(value):
+    # Numeric dates avoid host-dependent English month names, while preserving Almaty time.
+    return datetime.fromisoformat(value).astimezone(ZoneInfo('Asia/Almaty')).strftime('%d.%m.%Y · %H:%M') if value else '—'
+
+
+ERROR_KEYS = {value: key for key, value in TRANSLATIONS['en'].items() if key.startswith('error.')}
+
+
+def error_text(error):
+    message = str(error)
+    if message in ERROR_KEYS:
+        return t(ERROR_KEYS[message])
+    if isinstance(error, (UnicodeError, pd.errors.ParserError, pd.errors.EmptyDataError)):
+        return t('error.csv_invalid')
+    logging.getLogger(__name__).error('UI operation failed: %s', message)
+    return t('error.generic')
+
+
+ENUM_COLUMNS = {'category', 'urgency', 'tone', 'department', 'predicted_category', 'predicted_urgency',
+                'predicted_tone', 'predicted_department', 'effective_urgency', 'assigned_department',
+                'status', 'previous_status', 'new_status', 'previous_department', 'new_department',
+                'previous_urgency', 'new_urgency', 'action', 'operational_priority', 'language'}
+
+
+def display_frame(frame):
+    """Copy and localize known application fields; never modify source text or stored rows."""
+    result = frame.copy()
+    for column in result:
+        if column == 'operational_priority':
+            result[column] = result[column].map(lambda v: label('priority_' + str(v)))
+        elif column in ENUM_COLUMNS:
+            result[column] = result[column].map(lambda v: label(v) if isinstance(v, str) or pd.isna(v) else v)
+        elif column in ('submitted_at', 'resolved_at', 'reviewed_at', 'timestamp'):
+            result[column] = result[column].map(display_time)
+        elif column in ('requires_review', 'truncated'):
+            result[column] = result[column].map(lambda v: label('yes' if v else 'no'))
+        elif column == 'review_reasons':
+            result[column] = result[column].map(lambda v: ' · '.join(label(x.strip()) for x in str(v).replace(' · ', ';').split(';')))
+        elif column == 'error':
+            result[column] = result[column].map(lambda v: error_text(v) if isinstance(v, str) and v else '')
+    return result.rename(columns=column_labels(result.columns))

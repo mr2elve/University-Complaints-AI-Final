@@ -30,3 +30,9 @@ h2,h3 { letter-spacing: -.5px; }
 [data-testid="stSidebar"] [role="radiogroup"] label { padding: 9px 12px; border-radius: 10px; margin: 0 !important; }
 [data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked) { background: #edf2ff; color: #285ae8; }
 @media (max-width: 700px) { .block-container { padding-top: 4rem; } }
+/* Allow translated labels to wrap without changing the existing layout or palette. */
+[data-testid="stMetricLabel"] p { white-space: normal; overflow-wrap: anywhere; }
+[data-testid="stMetric"] { height: 100%; }
+.stButton > button, .stDownloadButton > button { white-space: normal; height: auto; }
+[data-testid="stSidebar"] label p, .brand-title, .brand-subtitle { overflow-wrap: anywhere; }
+.st-key-analyze_form, [class*="st-key-edit_"] { background: white; border-radius: 16px; }

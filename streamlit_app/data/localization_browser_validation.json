@@ -1,0 +1,326 @@
+{
+  "page_checks": [
+    {
+      "viewport": "desktop",
+      "locale": "en",
+      "page": "dashboard",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "desktop",
+      "locale": "en",
+      "page": "analyzer",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "desktop",
+      "locale": "en",
+      "page": "management",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "desktop",
+      "locale": "en",
+      "page": "review",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "desktop",
+      "locale": "en",
+      "page": "batch",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "desktop",
+      "locale": "en",
+      "page": "research",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "desktop",
+      "locale": "en",
+      "page": "about",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "desktop",
+      "locale": "kk",
+      "page": "dashboard",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "desktop",
+      "locale": "kk",
+      "page": "analyzer",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "desktop",
+      "locale": "kk",
+      "page": "management",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "desktop",
+      "locale": "kk",
+      "page": "review",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "desktop",
+      "locale": "kk",
+      "page": "batch",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "desktop",
+      "locale": "kk",
+      "page": "research",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "desktop",
+      "locale": "kk",
+      "page": "about",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "desktop",
+      "locale": "ru",
+      "page": "dashboard",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "desktop",
+      "locale": "ru",
+      "page": "analyzer",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "desktop",
+      "locale": "ru",
+      "page": "management",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "desktop",
+      "locale": "ru",
+      "page": "review",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "desktop",
+      "locale": "ru",
+      "page": "batch",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "desktop",
+      "locale": "ru",
+      "page": "research",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "desktop",
+      "locale": "ru",
+      "page": "about",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "mobile",
+      "locale": "en",
+      "page": "dashboard",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "mobile",
+      "locale": "en",
+      "page": "analyzer",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "mobile",
+      "locale": "en",
+      "page": "management",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "mobile",
+      "locale": "en",
+      "page": "review",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "mobile",
+      "locale": "en",
+      "page": "batch",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "mobile",
+      "locale": "en",
+      "page": "research",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "mobile",
+      "locale": "en",
+      "page": "about",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "mobile",
+      "locale": "kk",
+      "page": "dashboard",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "mobile",
+      "locale": "kk",
+      "page": "analyzer",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "mobile",
+      "locale": "kk",
+      "page": "management",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "mobile",
+      "locale": "kk",
+      "page": "review",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "mobile",
+      "locale": "kk",
+      "page": "batch",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "mobile",
+      "locale": "kk",
+      "page": "research",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "mobile",
+      "locale": "kk",
+      "page": "about",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "mobile",
+      "locale": "ru",
+      "page": "dashboard",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "mobile",
+      "locale": "ru",
+      "page": "analyzer",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "mobile",
+      "locale": "ru",
+      "page": "management",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "mobile",
+      "locale": "ru",
+      "page": "review",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "mobile",
+      "locale": "ru",
+      "page": "batch",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "mobile",
+      "locale": "ru",
+      "page": "research",
+      "horizontal_overflow": false
+    },
+    {
+      "viewport": "mobile",
+      "locale": "ru",
+      "page": "about",
+      "horizontal_overflow": false
+    }
+  ],
+  "browser_errors": [],
+  "workflows": [
+    "Unsubmitted draft retained through EN → KK → RU → EN",
+    "Real kk/ru/en/mixed inference with en interface",
+    "Real kk/ru/en/mixed inference with kk interface",
+    "Real kk/ru/en/mixed inference with ru interface",
+    "Explicit complaint saving",
+    "Saved analysis/results retained through language cycle",
+    "Actual flagged complaint, notes retained, human review approval",
+    "Search, status update and audit history",
+    "Localized native table column menu, search prompt and accessible search label",
+    "CSV upload, invalid row, real batch inference, export and opt-in saving",
+    "Localized native upload error"
+  ],
+  "browser_version": "157.0.8103.51",
+  "tested_at": "2026-11-14",
+  "streamlit_version": "1.67.0",
+  "viewports": {
+    "desktop": {
+      "width": 1440,
+      "height": 1050
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  "database": "Isolated temporary SQLite database containing illustrative QA complaints only.",
+  "expanded_matrix_checks": [
+    {
+      "viewport": "desktop",
+      "locale": "en",
+      "localized_axes": true
+    },
+    {
+      "viewport": "desktop",
+      "locale": "kk",
+      "localized_axes": true
+    },
+    {
+      "viewport": "desktop",
+      "locale": "ru",
+      "localized_axes": true
+    },
+    {
+      "viewport": "mobile",
+      "locale": "en",
+      "localized_axes": true
+    },
+    {
+      "viewport": "mobile",
+      "locale": "kk",
+      "localized_axes": true
+    },
+    {
+      "viewport": "mobile",
+      "locale": "ru",
+      "localized_axes": true
+    }
+  ],
+  "supplemental_checks": [
+    "Native menu/footer localized through EN → KK → RU → EN after the final catalog addition."
+  ],
+  "translation_keys_per_locale": 427,
+  "automated_tests": {
+    "passed": 104,
+    "failed": 0,
+    "skipped": 0,
+    "duration_seconds": 18.42
+  }
+}

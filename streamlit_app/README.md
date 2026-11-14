@@ -1,6 +1,6 @@
 # AI University Complaint Management System
 
-The Streamlit application runs the fine-tuned **multilingual XLM-RoBERTa** checkpoint on CPU for Kazakh, Russian, English and mixed Kazakh–Russian complaints. It predicts category, urgency, tone and department, preserves human review, and stores explicitly saved complaints in SQLite. Navigation remains available in English and Kazakh.
+The Streamlit application runs the fine-tuned **multilingual XLM-RoBERTa** checkpoint on CPU for Kazakh, Russian, English and mixed Kazakh–Russian complaints. It predicts category, urgency, tone and department, preserves human review, and stores explicitly saved complaints in SQLite. The complete interface supports English, Қазақша and Русский. Interface language never restricts complaint input language.
 
 This is an academic demonstration, not an official university service. Complaint text is processed on the application server; Hugging Face is contacted only to obtain missing model files.
 
@@ -66,7 +66,7 @@ The fast tokenizer loads the actual exported graph and special-token settings lo
 
 ## Routing, database and seven pages
 
-All seven pages remain: Dashboard, AI Complaint Analyzer, Complaint Management, Manual Review Queue, Batch Analysis, Model Analytics, and About the Project. The CSS, page layout, bilingual navigation, database schema, human review and routing implementation remain intact. Model-related text and evaluation provenance have been updated.
+All seven pages remain: Dashboard, AI Complaint Analyzer, Complaint Management, Manual Review Queue, Batch Analysis, Model Analytics, and About the Project. The CSS, page layout, trilingual navigation, database schema, human review and routing implementation remain intact. Model-related text and evaluation provenance have been updated.
 
 The new export contains no routing settings. The application retains the established policy:
 
@@ -102,7 +102,7 @@ The benchmark separates Python imports, local model loading, four-language infer
 
 ## Tests and troubleshooting
 
-`python -m pytest -q` covers real multilingual inference and batch consistency, strict CPU loading, tokenizer parity, label-order validation, cached/offline artifact reuse, partial-download recovery, original routing boundaries, SQLite audit/review behavior and all seven pages in both UI languages. Missing weights explicitly skip dependent tests; that does not validate inference. The checked-in example complaints are illustrative, not real university records.
+`python -m pytest -q` covers real multilingual inference and batch consistency, strict CPU loading, tokenizer parity, label-order validation, cached/offline artifact reuse, partial-download recovery, original routing boundaries, SQLite audit/review behavior and all seven pages in all three UI languages. Missing weights explicitly skip dependent tests; that does not validate inference. The checked-in example complaints are illustrative, not real university records.
 
 - Download failure: retry setup; completed local files are retained.
 - Old configuration or checkpoint mismatch: use a fresh directory for the pinned multilingual export. The loader fails instead of producing substitute predictions.
@@ -111,3 +111,31 @@ The benchmark separates Python imports, local model loading, four-language infer
 - Stale-record conflict: reload the record before reapplying changes.
 
 The app has no authentication or encrypted database storage. Softmax scores are uncalibrated; human review remains necessary. Original browser screenshots and historical validation are retained as older artifacts, not evidence of a new Cloud deployment.
+
+## Trilingual localization
+
+All application text is centralized in `locales/en.json`, `locales/kk.json` and `locales/ru.json`. Each catalog has the same keys and interpolation placeholders. Views call `t(key, **values)`; missing translations fail explicitly instead of silently falling back to English. `label()` and `display_frame()` translate copies of presentation data only. Model label order, inference, routing thresholds, SQLite schema and existing records are unchanged. User text, notes, uploaded CSV columns and machine-readable exports remain verbatim/canonical.
+
+Widgets have stable keys and session persistence. The language selector callback explicitly rebinds canonical selection values because Streamlit 1.67 serializes formatted option strings in browser messages. Draft editors use visually equivalent bordered containers with explicit Analyze/Save/Approve buttons so changing language can capture draft fields without submitting a form. Saving and review still require the original explicit actions.
+
+`src/native_locale.py` and `assets/native_locale.js` provide a narrowly scoped adapter for built-in Streamlit controls whose text is not configurable through the Python API, including upload controls, native errors, toolbar text and accessibility labels. It translates actual text/ARIA attributes, not just CSS overlays, and leaves entered complaint text and data cells alone. This adapter is tested against the pinned Streamlit 1.67.0; upgrades require another browser audit. Restart the app after editing catalog files. Browser/OS-owned file dialogs follow the user's browser/OS language.
+
+The historical SVM matrices are displayed with translated axes and class labels using counts transcribed from the unchanged original source image. Automated checks verify 150 samples per task and agreement with the published Macro-F1 values. The original image remains downloadable as a historical source, with its original English labels.
+
+Run automated localization and regression checks:
+
+```bash
+python -m pytest -q
+```
+
+Optional Chrome/Playwright checks require `playwright` and installed Google Chrome on macOS. Use an isolated QA database because the browser script creates illustrative records:
+
+```bash
+COMPLAINT_DB_PATH=/tmp/university-localization-qa.sqlite3 \
+  streamlit run app.py --server.port 8511
+# In another terminal, using the same virtual environment:
+python scripts/browser_check.py --confirm-isolated-database \
+  --output-dir /tmp/university-localization-browser
+```
+
+The script checks all 21 page/language combinations on desktop and mobile, multilingual inference independent of interface language, draft/results preservation, saving, review, search, audit history and CSV workflows. See [localization validation](LOCALIZATION_VALIDATION.md) for results, screenshots, changed files and scope limitations.

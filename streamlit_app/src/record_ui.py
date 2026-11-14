@@ -1,59 +1,66 @@
 import json
 import streamlit as st
 from src.config import DEPARTMENTS, STATUSES
-from src.translations import t, label, label_formatter
+from src.ui_state import selection_index
+from src.translations import t, label, label_formatter, display_time, error_text
 from src.ui import prediction_details, table
-from src.utils import local_time
 
 
 def record_editor(db, complaint_id, reviewing=False):
     row = db.get(complaint_id)
-    st.subheader(t('Complaint #', 'Шағым №') + str(complaint_id))
-    st.caption(local_time(row['submitted_at']) + ' · Asia/Almaty')
+    st.subheader(t('ui.complaint') + str(complaint_id))
+    st.caption(display_time(row['submitted_at']) + ' · ' + t('ui.almaty'))
     with st.container(border=True):
         st.text(row['complaint_text'])
     snapshot=json.loads(row['prediction_json'])
-    with st.expander(t('Original AI analysis · preserved','Бастапқы AI талдауы · сақталған'), expanded=reviewing):
+    with st.expander(t('ui.original_ai_analysis_preserved'), expanded=reviewing):
         prediction_details(snapshot)
-    st.caption(t('AI-suggested department: ', 'AI ұсынған бөлім: ') + label(row['predicted_department']))
+    st.caption(t('ui.ai_suggested_department') + label(row['predicted_department']))
     if row['reviewed_at']:
-        st.success(t('Reviewed: ','Тексерілген: ') + local_time(row['reviewed_at']))
-    st.markdown('**' + t('Human decision','Адамның шешімі') + '**')
+        st.success(t('ui.reviewed') + display_time(row['reviewed_at']))
+    st.markdown('**' + t('ui.human_decision') + '**')
     if 'edit_version' not in st.session_state:
-        st.session_state['edit_version'] = row['version']
+        # Explicit values also reset the browser controls when switching records
+        # or between management/review; these editors now share persistent keys.
+        st.session_state.update(
+            edit_version=row['version'], edit_status=row['status'],
+            edit_department=row['assigned_department'] or (row['predicted_department'] if reviewing else None),
+            edit_urgency=row['effective_urgency'], edit_notes=row['admin_notes'],
+            review_confirmed=False,
+        )
     if st.session_state['edit_version'] != row['version']:
-        st.warning(t('This record changed in another session. Reload before saving.', 'Бұл жазба басқа сессияда өзгертілді. Сақтау алдында қайта жүктеңіз.'))
-    st.button(t('Reload record', 'Жазбаны қайта жүктеу'), on_click=clear_editor, key='reload_record')
-    with st.form(f'edit_{complaint_id}_{reviewing}'):
+        st.warning(t('ui.this_record_changed_in_another_session_reload_before_saving'))
+    st.button(t('ui.reload_record'), on_click=clear_editor, key='reload_record')
+    with st.container(border=True, key=f'edit_{complaint_id}_{reviewing}'):
         cols=st.columns(3)
-        status=cols[0].selectbox(t('Current status','Ағымдағы мәртебе'),STATUSES,index=STATUSES.index(row['status']),format_func=label_formatter(),key='edit_status')
+        status=cols[0].selectbox(t('ui.current_status'),STATUSES,index=selection_index('edit_status', STATUSES, STATUSES.index(row['status'])),format_func=label_formatter(),key='edit_status',persist_state='session')
         departments=[None,*DEPARTMENTS]
         default=row['assigned_department'] or (row['predicted_department'] if reviewing else None)
-        department=cols[1].selectbox(t('Assigned department · human decision','Тағайындалған бөлім · адам шешімі'),departments,index=departments.index(default),format_func=label_formatter(),key='edit_department')
-        urgency=cols[2].selectbox(t('Operational urgency','Операциялық шұғылдық'),['high','medium','low'],index=['high','medium','low'].index(row['effective_urgency']),format_func=label_formatter(),key='edit_urgency')
-        notes=st.text_area(t('Administrator notes','Әкімші ескертпелері'),value=row['admin_notes'],max_chars=10000,key='edit_notes')
+        department=cols[1].selectbox(t('ui.assigned_department_human_decision'),departments,index=selection_index('edit_department', departments, departments.index(default)),format_func=label_formatter(),key='edit_department',persist_state='session')
+        urgency=cols[2].selectbox(t('ui.operational_urgency'),['high','medium','low'],index=selection_index('edit_urgency', ['high','medium','low'], ['high','medium','low'].index(row['effective_urgency'])),format_func=label_formatter(),key='edit_urgency',persist_state='session')
+        notes=st.text_area(t('ui.administrator_notes'),value=row['admin_notes'],max_chars=10000,key='edit_notes',persist_state='session')
         if reviewing:
-            confirmed=st.checkbox(t('I have reviewed the full complaint, considered urgency, and approve this routing decision.','Мен толық шағымды қарап, шұғылдығын бағаладым және бағыттау шешімін мақұлдаймын.'),key='review_confirmed')
-            submit=st.form_submit_button(t('Approve routing & mark reviewed','Бағыттауды мақұлдау және тексерілді деп белгілеу'),type='primary')
+            confirmed=st.checkbox(t('ui.i_have_reviewed_the_full_complaint_considered_urgency_and'),key='review_confirmed',persist_state='session')
+            submit=st.button(t('ui.approve_routing_mark_reviewed'),key='approve_review',type='primary')
         else:
             confirmed=False
-            submit=st.form_submit_button(t('Save changes','Өзгерістерді сақтау'),type='primary')
+            submit=st.button(t('ui.save_changes'),key='save_changes',type='primary')
     if submit:
         if reviewing and not confirmed:
-            st.error(t('Confirm that you reviewed the complaint before approving.','Мақұлдау алдында шағымды тексергеніңізді растаңыз.'))
+            st.error(t('ui.confirm_that_you_reviewed_the_complaint_before_approving'))
         else:
             try:
                 db.update(complaint_id,status='Assigned' if reviewing and status in ('New','Pending Review') else status,department=department,urgency=urgency,notes=notes,expected_version=st.session_state['edit_version'],departments=DEPARTMENTS,reviewed=reviewing)
-                st.session_state['record_notice']=t('Decision saved. Original AI predictions are preserved.','Шешім сақталды. Бастапқы AI болжамдары сақталған.')
+                st.session_state['record_notice']='ui.decision_saved_original_ai_predictions_are_preserved'
                 for key in ('edit_status','edit_department','edit_urgency','edit_notes','review_confirmed','edit_version'):
                     st.session_state.pop(key,None)
                 st.rerun()
             except ValueError as exc:
-                st.error(str(exc))
-    with st.expander(t('Change history','Өзгерістер тарихы')):
+                st.error(error_text(exc))
+    with st.expander(t('ui.change_history')):
         history=db.history(complaint_id)
         if history.empty:
-            st.caption(t('No manual changes yet.','Қолмен өзгерістер әлі енгізілмеген.'))
+            st.caption(t('ui.no_manual_changes_yet'))
         else:
             table(history.drop(columns=['id','complaint_id']))
 
