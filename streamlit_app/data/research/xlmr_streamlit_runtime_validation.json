@@ -1,0 +1,225 @@
+{
+  "platform": "darwin",
+  "python": "3.11.4",
+  "repo": "mr2elve/xlmr-university-complaints-multilingual",
+  "revision": "f15eb91b1b494b4ed92978a89b1f628e338b0ce3",
+  "subfolder": "XLMR_Multilingual_University_Complaints",
+  "import_seconds": 3.685,
+  "before_load": {
+    "rss_mib": 402.16,
+    "peak_rss_mib": 402.14
+  },
+  "load_seconds": 0.605,
+  "after_load": {
+    "rss_mib": 656.48,
+    "peak_rss_mib": 674.09
+  },
+  "parameter_count": 278055183,
+  "parameter_mib": 1060.7,
+  "checkpoint_bytes": 1112274807,
+  "cache_hit_seconds": 0.0003,
+  "inference_seconds": 0.859,
+  "after_inference": {
+    "rss_mib": 930.91,
+    "peak_rss_mib": 930.53
+  },
+  "results": [
+    {
+      "language": "kk",
+      "text": "Оқу ақысын төледім, бірақ жүйеде төлем көрсетілмейді. Төлемді тексеріп, қаржы бөліміне жіберіңіздер.",
+      "normalized_text": "Оқу ақысын төледім, бірақ жүйеде төлем көрсетілмейді. Төлемді тексеріп, қаржы бөліміне жіберіңіздер.",
+      "predictions": {
+        "category": "administrative_services",
+        "urgency": "medium",
+        "tone": "neutral",
+        "department": "finance_office"
+      },
+      "probabilities": {
+        "category": {
+          "academic_process": 0.0023107919842004776,
+          "administrative_services": 0.9955840706825256,
+          "campus_environment": 0.0021052516531199217
+        },
+        "urgency": {
+          "high": 0.05637666583061218,
+          "low": 0.005917152389883995,
+          "medium": 0.9377061724662781
+        },
+        "tone": {
+          "dissatisfied": 0.1302744746208191,
+          "intense_negative": 0.01277385838329792,
+          "neutral": 0.8569516539573669
+        },
+        "department": {
+          "academic_affairs": 0.0007084918324835598,
+          "facilities_office": 0.0005022799596190453,
+          "faculty_dean_office": 0.0006294282502494752,
+          "finance_office": 0.99685138463974,
+          "security_ombudsperson": 0.0003095910942647606,
+          "student_service_center": 0.0009987982921302319
+        }
+      },
+      "truncated": false,
+      "max_length": 128,
+      "routing_confidence": 0.9377061724662781,
+      "high_urgency_probability": 0.05637666583061218,
+      "requires_review": false,
+      "review_reasons": [
+        "Eligible for automatic routing"
+      ],
+      "operational_priority": "medium",
+      "suggested_sla_hours": 24,
+      "confidence_threshold": 0.75,
+      "urgent_review_threshold": 0.3
+    },
+    {
+      "language": "ru",
+      "text": "Я оплатил обучение, но платёж не отображается в системе. Прошу финансовый отдел проверить оплату.",
+      "normalized_text": "Я оплатил обучение, но платёж не отображается в системе. Прошу финансовый отдел проверить оплату.",
+      "predictions": {
+        "category": "administrative_services",
+        "urgency": "medium",
+        "tone": "neutral",
+        "department": "finance_office"
+      },
+      "probabilities": {
+        "category": {
+          "academic_process": 0.0025697248056530952,
+          "administrative_services": 0.9944605827331543,
+          "campus_environment": 0.0029697671998292208
+        },
+        "urgency": {
+          "high": 0.01833660528063774,
+          "low": 0.00978419091552496,
+          "medium": 0.9718791842460632
+        },
+        "tone": {
+          "dissatisfied": 0.04101329669356346,
+          "intense_negative": 0.007738249376416206,
+          "neutral": 0.9512484073638916
+        },
+        "department": {
+          "academic_affairs": 0.0007429440738633275,
+          "facilities_office": 0.0005414211191236973,
+          "faculty_dean_office": 0.0005683768540620804,
+          "finance_office": 0.9966985583305359,
+          "security_ombudsperson": 0.00032670292421244085,
+          "student_service_center": 0.0011220314772799611
+        }
+      },
+      "truncated": false,
+      "max_length": 128,
+      "routing_confidence": 0.9718791842460632,
+      "high_urgency_probability": 0.01833660528063774,
+      "requires_review": false,
+      "review_reasons": [
+        "Eligible for automatic routing"
+      ],
+      "operational_priority": "medium",
+      "suggested_sla_hours": 24,
+      "confidence_threshold": 0.75,
+      "urgent_review_threshold": 0.3
+    },
+    {
+      "language": "en",
+      "text": "I paid my tuition, but the payment is missing from the system. Please ask the finance office to check my payment.",
+      "normalized_text": "I paid my tuition, but the payment is missing from the system. Please ask the finance office to check my payment.",
+      "predictions": {
+        "category": "administrative_services",
+        "urgency": "medium",
+        "tone": "neutral",
+        "department": "finance_office"
+      },
+      "probabilities": {
+        "category": {
+          "academic_process": 0.0028589179273694754,
+          "administrative_services": 0.9936810731887817,
+          "campus_environment": 0.003460019826889038
+        },
+        "urgency": {
+          "high": 0.022017784416675568,
+          "low": 0.009328070096671581,
+          "medium": 0.9686541557312012
+        },
+        "tone": {
+          "dissatisfied": 0.03105388581752777,
+          "intense_negative": 0.00485237454995513,
+          "neutral": 0.964093804359436
+        },
+        "department": {
+          "academic_affairs": 0.0008066407754085958,
+          "facilities_office": 0.0006937172147445381,
+          "faculty_dean_office": 0.0006103296764194965,
+          "finance_office": 0.9959502220153809,
+          "security_ombudsperson": 0.00046423572348430753,
+          "student_service_center": 0.001474844990298152
+        }
+      },
+      "truncated": false,
+      "max_length": 128,
+      "routing_confidence": 0.9686541557312012,
+      "high_urgency_probability": 0.022017784416675568,
+      "requires_review": false,
+      "review_reasons": [
+        "Eligible for automatic routing"
+      ],
+      "operational_priority": "medium",
+      "suggested_sla_hours": 24,
+      "confidence_threshold": 0.75,
+      "urgent_review_threshold": 0.3
+    },
+    {
+      "language": "kk-ru",
+      "text": "Оқу ақысын төледім, но платёж не отображается в системе. Қаржы бөлімі, пожалуйста, проверьте оплату.",
+      "normalized_text": "Оқу ақысын төледім, но платёж не отображается в системе. Қаржы бөлімі, пожалуйста, проверьте оплату.",
+      "predictions": {
+        "category": "administrative_services",
+        "urgency": "medium",
+        "tone": "neutral",
+        "department": "finance_office"
+      },
+      "probabilities": {
+        "category": {
+          "academic_process": 0.0029323811177164316,
+          "administrative_services": 0.9941157102584839,
+          "campus_environment": 0.00295193656347692
+        },
+        "urgency": {
+          "high": 0.02967897616326809,
+          "low": 0.008739326149225235,
+          "medium": 0.9615817070007324
+        },
+        "tone": {
+          "dissatisfied": 0.022777190431952477,
+          "intense_negative": 0.007474250625818968,
+          "neutral": 0.9697485566139221
+        },
+        "department": {
+          "academic_affairs": 0.0008366492693312466,
+          "facilities_office": 0.0005829912261106074,
+          "faculty_dean_office": 0.0007617618539370596,
+          "finance_office": 0.9963262677192688,
+          "security_ombudsperson": 0.0004243811417836696,
+          "student_service_center": 0.001067910110577941
+        }
+      },
+      "truncated": false,
+      "max_length": 128,
+      "routing_confidence": 0.9615817070007324,
+      "high_urgency_probability": 0.02967897616326809,
+      "requires_review": false,
+      "review_reasons": [
+        "Eligible for automatic routing"
+      ],
+      "operational_priority": "medium",
+      "suggested_sla_hours": 24,
+      "confidence_threshold": 0.75,
+      "urgent_review_threshold": 0.3
+    }
+  ],
+  "full_length_batch_seconds": 0.208,
+  "after_full_length_batch": {
+    "rss_mib": 994.59,
+    "peak_rss_mib": 994.59
+  }
+}

@@ -8,7 +8,13 @@ from src.utils import csv_bytes
 
 
 def render(db):
-    heading(t('Evidence behind the model','Модельдің зерттеу негізі'),t('Reported held-out test results · 150 Kazakh complaints · four classification tasks','Бөлек тест жиынының нәтижелері · 150 қазақша шағым · төрт жіктеу міндеті'))
+    heading(t('Evidence behind the model','Модельдің зерттеу негізі'),t('Published multilingual evaluation and original research · four classification tasks','Жарияланған көптілді бағалау және бастапқы зерттеу · төрт жіктеу міндеті'))
+    st.subheader(t('Deployed multilingual XLM-RoBERTa', 'Қолданыстағы көптілді XLM-RoBERTa'))
+    multilingual = pd.read_csv(ROOT/'data/research/xlmr_metrics_by_language.csv')
+    st.dataframe(multilingual, hide_index=True, width='stretch')
+    st.caption(t('Published export results: 150 held-out complaints per language, grouped by original complaint ID before translation expansion. Synthetic Kazakh–Russian mixed-input mean Macro-F1: 0.9829; this is not a real-user benchmark.', 'Жарияланған экспорт нәтижелері: әр тілде 150 тест шағымы; аудармаларды қоспас бұрын бастапқы шағым ID бойынша бөлінген. Жасанды қазақша–орысша аралас мәтіннің орташа Macro-F1: 0.9829; бұл нақты пайдаланушылар бағалауы емес.'))
+    st.subheader(t('Original Kazakh-only research comparison', 'Бастапқы қазақша зерттеуді салыстыру'))
+    st.caption(t('The historical results below use a different experiment and split; they do not evaluate the newly deployed checkpoint.', 'Төмендегі тарихи нәтижелер басқа тәжірибе мен бөлуге негізделген; олар жаңа модельді бағаламайды.'))
     df=pd.read_csv(ROOT/'data/research/test_comparison.csv')
     a,b,c=st.columns(3)
     a.metric(t('Best overall · Linear SVM','Ең үздік жалпы нәтиже · Linear SVM'),'0.9731')
@@ -26,7 +32,7 @@ def render(db):
         st.subheader(t('Mean Macro-F1 ranking','Орташа Macro-F1 рейтингі'))
         fig=px.bar(df.sort_values('mean_macro_f1'),y='Model',x='mean_macro_f1',orientation='h',text='mean_macro_f1',color='Model',color_discrete_sequence=COLORS,labels={'mean_macro_f1':'Mean Macro-F1'})
         fig.update_xaxes(range=[0,1]);fig.update_layout(showlegend=False);chart(fig)
-    st.info(t('KazRoBERTa powers this demonstration to investigate a shared-encoder, multi-task Transformer. Linear SVM achieved the highest overall mean test Macro-F1. These results do not establish that a larger model is better.','Бұл демонстрация ортақ кодтағышы бар көпміндетті Transformer-ді зерттеу үшін KazRoBERTa қолданады. Linear SVM тестте ең жоғары орташа Macro-F1 көрсетті. Бұл нәтижелер үлкенірек модельдің жақсырақ екенін дәлелдемейді.'))
+    st.info(t('The application now uses the multilingual XLM-RoBERTa checkpoint. The following comparison is retained from the original study. Linear SVM achieved the highest overall mean test Macro-F1. These results do not establish that a larger model is better.','Қолданба қазір көптілді XLM-RoBERTa моделін қолданады. Келесі салыстыру бастапқы зерттеуден сақталған. Linear SVM тестте ең жоғары орташа Macro-F1 көрсетті. Бұл нәтижелер үлкенірек модельдің жақсырақ екенін дәлелдемейді.'))
     models=[('Linear SVM',t('Character TF-IDF (char_wb, 2–5 grams), with four independently trained classifiers. C was selected on validation.','Таңбалық TF-IDF (char_wb, 2–5 грамма), төрт бөлек жіктеуіш. C валидацияда таңдалды.')),
             ('BiLSTM + Attention',t('Shared bidirectional LSTM, learned attention pooling, and four linear heads.','Ортақ екібағытты LSTM, үйретілген attention pooling және төрт сызықтық бас.')),
             ('XLM-RoBERTa',t('Multilingual pretrained encoder, masked mean pooling, dropout 0.2, and four heads.','Алдын ала үйретілген көптілді кодтағыш, маскаланған орташа біріктіру, dropout 0.2 және төрт бас.')),

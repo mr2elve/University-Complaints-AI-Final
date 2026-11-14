@@ -18,7 +18,7 @@ def cached_model(path):
 
 def get_model():
     try:
-        with st.spinner(t('Loading local KazRoBERTa on CPU…', 'KazRoBERTa моделі CPU-ға жүктелуде…')):
+        with st.spinner(t('Loading local XLM-RoBERTa on CPU…', 'XLM-RoBERTa моделі CPU-ға жүктелуде…')):
             return cached_model(str(MODEL_DIR))
     except Exception as exc:
         st.error(t('The trained model could not be loaded. No prediction was made.', 'Үйретілген модель жүктелмеді. Болжам жасалмады.'))
@@ -68,7 +68,8 @@ def prediction_details(result):
     st.caption(t('SLA values (4 / 24 / 72 hours) are research examples based on predicted urgency, not university policy. Potentially urgent cases need prompt human assessment.', 'SLA мәндері (4 / 24 / 72 сағат) болжамды шұғылдыққа негізделген зерттеу мысалдары, университет саясаты емес. Шұғыл болуы мүмкін жағдайларды адам жедел бағалауы тиіс.'))
     st.info(t('Raw softmax scores are uncalibrated. They do not guarantee that a prediction is correct.', 'Softmax бағалары калибрленбеген. Олар болжамның дұрыстығына кепілдік бермейді.'))
     if result.get('truncated'):
-        st.warning(t('This text exceeds 96 tokens. The model analyzed only the first 96 tokens; the complete original text is retained when saved.', 'Мәтін 96 токеннен асады. Модель алғашқы 96 токенді ғана талдады; сақтағанда бастапқы мәтін толық сақталады.'))
+        limit = result.get('max_length')
+        st.warning(t(f'This text was truncated to the model token limit ({limit if limit else "not recorded"}). The complete original text is retained when saved.', f'Мәтін модельдің токен шегіне дейін қысқартылды ({limit if limit else "жазылмаған"}). Сақтағанда бастапқы мәтін толық сақталады.'))
     with st.expander(t('Full probability distributions', 'Толық ықтималдық үлестірімдері')):
         for col, task in zip(st.columns(2) * 2, TARGETS):
             with col:

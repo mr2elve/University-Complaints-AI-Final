@@ -1,0 +1,101 @@
+{
+  "architecture": "MultiTaskXLMR",
+  "base_model": "FacebookAI/xlm-roberta-base",
+  "encoder_model_name": "FacebookAI/xlm-roberta-base",
+  "max_length": 128,
+  "dropout": 0.2,
+  "tasks": [
+    "category",
+    "urgency",
+    "tone",
+    "department"
+  ],
+  "label_names": {
+    "category": [
+      "academic_process",
+      "administrative_services",
+      "campus_environment"
+    ],
+    "urgency": [
+      "high",
+      "low",
+      "medium"
+    ],
+    "tone": [
+      "dissatisfied",
+      "intense_negative",
+      "neutral"
+    ],
+    "department": [
+      "academic_affairs",
+      "facilities_office",
+      "faculty_dean_office",
+      "finance_office",
+      "security_ombudsperson",
+      "student_service_center"
+    ]
+  },
+  "id2label": {
+    "category": {
+      "0": "academic_process",
+      "1": "administrative_services",
+      "2": "campus_environment"
+    },
+    "urgency": {
+      "0": "high",
+      "1": "low",
+      "2": "medium"
+    },
+    "tone": {
+      "0": "dissatisfied",
+      "1": "intense_negative",
+      "2": "neutral"
+    },
+    "department": {
+      "0": "academic_affairs",
+      "1": "facilities_office",
+      "2": "faculty_dean_office",
+      "3": "finance_office",
+      "4": "security_ombudsperson",
+      "5": "student_service_center"
+    }
+  },
+  "label2id": {
+    "category": {
+      "academic_process": 0,
+      "administrative_services": 1,
+      "campus_environment": 2
+    },
+    "urgency": {
+      "high": 0,
+      "low": 1,
+      "medium": 2
+    },
+    "tone": {
+      "dissatisfied": 0,
+      "intense_negative": 1,
+      "neutral": 2
+    },
+    "department": {
+      "academic_affairs": 0,
+      "facilities_office": 1,
+      "faculty_dean_office": 2,
+      "finance_office": 3,
+      "security_ombudsperson": 4,
+      "student_service_center": 5
+    }
+  },
+  "pooling": "masked_mean",
+  "training_languages": [
+    "kk",
+    "ru",
+    "en"
+  ],
+  "split": {
+    "train_original_ids": 700,
+    "validation_original_ids": 150,
+    "test_original_ids": 150,
+    "seed": 42
+  },
+  "validation_best_macro_f1": 0.9852102980748133
+}

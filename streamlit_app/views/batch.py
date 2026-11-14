@@ -27,7 +27,7 @@ def render(db):
     if st.session_state.get('batch_signature') != signature:
         st.session_state.pop('batch_results',None)
     table(frame.head(10))
-    size=st.select_slider(t('Inference batch size','Талдау тобының өлшемі'),options=[4,8,16,32],value=16)
+    size=st.select_slider(t('Inference batch size','Талдау тобының өлшемі'),options=[1,2,4,8,16],value=4)
     if st.button(t('Analyze batch','Топты талдау'),type='primary'):
         st.session_state.pop('batch_results',None)
         bundle=get_model()

@@ -21,7 +21,7 @@ with st.sidebar:
     page = st.radio(t('WORKSPACE', 'ЖҰМЫС КЕҢІСТІГІ'), list(pages), format_func=pages.get, key='page')
     st.divider()
     st.caption(t('LOCAL INFERENCE', 'ЖЕРГІЛІКТІ ТАЛДАУ'))
-    st.markdown('**KazRoBERTa** · CPU')
+    st.markdown('**XLM-RoBERTa** · CPU')
     st.caption(t('4 prediction heads · human oversight', '4 болжам басы · адам бақылауы'))
     st.caption(t('Academic prototype. No authentication is implemented. Keep this app on localhost.', 'Академиялық прототип. Аутентификация енгізілмеген. Қолданбаны localhost-та ұстаңыз.'))
 try:

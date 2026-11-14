@@ -1,250 +1,113 @@
 # AI University Complaint Management System
 
-A standalone, local Streamlit application for the AI Essentials Master’s final project at Astana IT University. It runs the supplied **trained KazRoBERTa checkpoint** on CPU to analyze Kazakh complaints, proposes confidence-aware routing, and preserves human decisions in SQLite.
+The Streamlit application runs the fine-tuned **multilingual XLM-RoBERTa** checkpoint on CPU for Kazakh, Russian, English and mixed Kazakh–Russian complaints. It predicts category, urgency, tone and department, preserves human review, and stores explicitly saved complaints in SQLite. Navigation remains available in English and Kazakh.
 
-This is an academic demonstration, **not an official Astana IT University service**. It has no authentication and should remain bound to localhost. No model training, OpenAI API, fabricated predictions, or external complaint-text processing is used.
+This is an academic demonstration, not an official university service. Complaint text is processed on the application server; Hugging Face is contacted only to obtain missing model files.
 
-## Quick start in this prepared workspace
+## Installation and startup
 
-Python 3.11, the virtual environment, dependencies, and your supplied model are already installed locally.
+Use Python 3.11. From this repository:
 
 ```bash
-cd /Users/altair/testPY/AI_Essentials
+cd streamlit_app
+python3.11 -m venv .venv
 source .venv/bin/activate
+pip install -r requirements-dev.txt
+python scripts/setup_model.py
+python -m pytest -q
+python scripts/smoke_test.py --offline
 streamlit run app.py
 ```
 
-Open **http://localhost:8501**. The application database starts empty. Analyze a complaint, then explicitly choose **Save complaint** to register it.
+`setup_model.py` is optional: the first analysis automatically downloads missing files. Linux/Windows select the pinned CPU-only PyTorch wheel; macOS uses its native CPU-capable wheel (macOS 14+). No CUDA or MPS is used. Existing dependency pins support XLM-R's exported fast tokenizer graph; SentencePiece conversion and an additional SentencePiece runtime are unnecessary.
 
-## Installation on another machine
+For Streamlit Community Cloud, select `streamlit_app/app.py` and Python 3.11. Its adjacent `requirements.txt` supplies application dependencies. Tests require `requirements-dev.txt`. See the resource caveats below before deployment.
 
-Use Python 3.11. The tested environment is Apple Silicon macOS with the CPU build of PyTorch; no CUDA, GPU, MPS, or Rosetta is required. The pinned PyTorch wheel requires macOS 14 or later. Allow several GB for the environment and model.
+## Model source and local reuse
 
-```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-python scripts/setup_model.py  # optional: pre-download before starting Streamlit
-python scripts/smoke_test.py
-streamlit run app.py
-```
+- Repository: [mr2elve/xlmr-university-complaints-multilingual](https://huggingface.co/mr2elve/xlmr-university-complaints-multilingual).
+- Required remote subfolder: `XLMR_Multilingual_University_Complaints/`.
+- Default pinned revision: `f15eb91b1b494b4ed92978a89b1f628e338b0ce3`.
+- Default local directory: `streamlit_app/model/xlmr/XLMR_Multilingual_University_Complaints/`.
+- Required export files: `config.json`, `model.pt`, `tokenizer.json`, `tokenizer_config.json`, `special_tokens_map.json`, `sentencepiece.bpe.model`.
+- `encoder_config.json` is fetched separately from **FacebookAI/xlm-roberta-base**. Only its small architecture configuration is downloaded, never the base model weights.
 
-Run these commands from `streamlit_app/`. If `python` resolves to a different version on your Mac, create the environment with `python3.11 -m venv .venv`. The application requirements are separate from the root Colab research requirements. Linux and Windows explicitly select `torch==2.15.0+cpu` from the official PyTorch CPU index, avoiding NVIDIA CUDA dependencies; macOS uses its native wheel.
+The loader uses `huggingface_hub.hf_hub_download` with the explicit subfolder, revision and a local Hub cache. Completed cached files are installed atomically, using hard links when possible to avoid another checkpoint-sized disk copy. Interrupted downloads retain the Hub's resumable cache. Existing local files are reused; a complete installation makes no network requests. The downloaded task `config.json` is never overwritten by the encoder configuration or application routing settings.
 
-For Streamlit Community Cloud, use entrypoint `streamlit_app/app.py` and Python 3.11. [Community Cloud selects the requirements beside the entrypoint before the repository root](https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/app-dependencies), so it uses `streamlit_app/requirements.txt`. No manual model upload or setup command is required: the first analysis loads the model and downloads missing artifacts automatically.
+The old artifacts under `model/` and the old KazRoBERTa Hugging Face repository are untouched. The new default directory prevents accidentally reusing them. All weights and tokenizer artifacts remain Git-ignored.
 
-### Model placement and offline operation
-
-```text
-model/
-  model.pt                 # trained multi-task state dictionary, ~318 MiB
-  config.json              # exported task order, label maps, routing settings
-  tokenizer.json           # exported complete tokenizers graph
-  tokenizer_config.json
-  encoder_config.json      # base RoBERTa architecture, ~636 bytes
-```
-
-The loader and `setup_model.py` share the same setup code. They download only missing `model.pt`, `config.json`, `tokenizer.json`, and `tokenizer_config.json` from [the published trained export](https://huggingface.co/mr2elve/kazroberta-university-complaints). Existing local files are preserved. If needed, they also fetch **only the small base encoder configuration** from the original repository named in the export's `model_name`. Base model weights are never downloaded. The export's `config.json` is an application configuration, so it is kept separate from `encoder_config.json`.
-
-Files live in `streamlit_app/model/` regardless of the launch directory, or in `COMPLAINT_MODEL_DIR` when set. Hugging Face keeps download metadata and resumable partial files in `model/.cache/huggingface/`; the base configuration has a separate cache under `model/.cache/encoder/`. [This local-directory cache avoids redundant downloads](https://huggingface.co/docs/huggingface_hub/guides/download#download-files-to-a-local-folder). All these artifacts remain Git-ignored. Community Cloud may clear local storage on rebuild, in which case the next load downloads them again.
-
-If a download fails, the existing application error panel reports the affected file and repository. Completed local files are retained, and retrying fetches only missing files. Inference remains unavailable until the real checkpoint loads successfully.
-
-For a fully offline setup, supply a previously obtained encoder config:
+For offline installation, either copy the complete seven-file local directory or use:
 
 ```bash
-python scripts/setup_model.py /path/to/KazRoBERTa_Trained_Model.zip \
+python scripts/setup_model.py /path/to/multilingual_export.zip \
   --encoder-config /path/to/encoder_config.json --offline
 ```
 
-The ZIP path remains supported and reads only the four expected files, preventing arbitrary archive-path extraction. Once all five files exist, loading and inference make no Hub requests. `load_model(allow_download=False)` or `setup_model.py --offline` explicitly disables downloads. `st.cache_resource` keeps one loaded model per server process, with a lock around inference. CPU checkpoint loading uses memory mapping to reduce peak memory. Restart Streamlit after replacing model files.
+The archive supports the export's actual subfolder, a `model/` prefix, or root-level filenames. Only expected files are read; arbitrary archive paths are not extracted.
 
-To select a different trusted export or pin a revision, use a fresh model directory:
+`COMPLAINT_MODEL_DIR`, `COMPLAINT_MODEL_REPO` and `COMPLAINT_MODEL_REVISION` override defaults. CLI equivalents are `--model-dir`, `--hub-repo` and `--revision`. The remote subfolder remains explicit and fixed. **Use a fresh model directory when changing repository or revision**; local-first loading intentionally does not replace existing files. Restart Streamlit after replacing an installation. `load_model(allow_download=False)` disables downloads.
 
-```bash
-python scripts/setup_model.py --hub-repo YOUR_ACCOUNT/YOUR_TRAINED_EXPORT \
-  --revision COMMIT_SHA --model-dir /path/to/new/model
-```
+## Verified architecture
 
-The application equivalents are `COMPLAINT_MODEL_REPO`, `COMPLAINT_MODEL_REVISION` (default `main`), and `COMPLAINT_MODEL_DIR`. Changing repository or revision does not replace existing local files. Keep model weights outside Git. Use only a trusted checkpoint; the loader uses PyTorch `weights_only=True` and strict state-dictionary matching.
+The new export is not an ordinary Hugging Face sequence classifier. `MultiTaskXLMR` reconstructs:
 
-## Seven application sections
+1. An `AutoModel` encoder with the architecture of `FacebookAI/xlm-roberta-base`: 12 layers, hidden size 768, 12 attention heads, vocabulary 250,002, maximum position embeddings 514.
+2. Attention-mask-weighted mean pooling: `(hidden * mask).sum(1) / mask.sum(1).clamp(min=1)`.
+3. Shared dropout, read from the export (`0.2`).
+4. Four **named `nn.ModuleDict` linear heads**, with keys `category`, `urgency`, `tone`, `department`; dimensions come from the exported ordered labels.
 
-| Section | Functionality |
-|---|---|
-| Dashboard | Database-derived KPIs, category/urgency/department/status distributions, daily trends in Asia/Almaty, recent records, empty state |
-| AI Complaint Analyzer | Five illustrative Kazakh examples, real CPU inference, four predictions, complete probability charts, routing reasons, example SLA, explicit save |
-| Complaint Management | Literal text/ID search, category/current urgency/assigned department/status/review filters, date sorting, original AI details, human assignment, notes, resolution, audit history, CSV export |
-| Manual Review Queue | Potentially urgent cases first, full complaint and AI snapshot, urgency/department correction, explicit approval, immutable original AI predictions |
-| Batch Analysis | UTF-8 CSV upload, text-column selection, preview, batched inference with progress, invalid-row reporting, CSV export, explicit opt-in persistence |
-| Model Analytics | Actual reported test results, grouped F1 chart, ranking, urgency misses, validation routing trade-off, original SVM confusion-matrix image |
-| About the Project | Background, objectives, dataset/methodology, architecture, findings, limitations, responsible AI, future work |
+Evidence: the pinned export's model card declares masked mean pooling and four linear heads; its config declares the architecture, base model, pooling, dropout, tasks and ordered labels. Its checkpoint contains `heads.category.*`, `heads.urgency.*`, `heads.tone.*`, `heads.department.*`, plus encoder and pooler weights. The original notebook cell 13 corroborates the masked-mean computation but uses numbered heads; it must not be copied unchanged. Strict loading matches all **207 tensors / 278,055,183 parameters** with no key rewriting or missing parameters.
 
-English and Kazakh navigation, labels, and explanations are supported. Canonical prediction taxonomy and CSV field names remain stable so results can be matched to the research export. Some low-level dependency/validation error details are displayed in English.
+Initialization uses the base configuration on PyTorch's `meta` device, then `torch.load(weights_only=True, mmap=True, map_location='cpu')` and strict `load_state_dict(assign=True)`. This avoids allocating a second full parameter set. The encoder's two deterministic nonpersistent position/token-type buffers are recreated on CPU. Every learned parameter comes from `model.pt`; inference uses `eval()` and `torch.inference_mode()`.
 
-## Screenshots
+The fast tokenizer loads the actual exported graph and special-token settings locally. The unrelated Transformers Mistral-regex heuristic is explicitly disabled; the exported tokenizer graph is preserved. Input normalization retains case and characters across all languages, applying NFC, removing selected zero-width characters and collapsing whitespace. Dynamic padding and truncation use the new export's **128-token** limit. Original full text remains available when saved.
 
-Screenshots are captured from the real application using illustrative test complaints and an isolated QA database; they are **not real university complaint records**. The normal application database is separate.
+`label_names`, `label2id` and `id2label` must agree. No old label indices or classifier sizes are used to construct heads or decode predictions. Named head outputs avoid reliance on dictionary iteration order. The urgency and department label sets are checked for compatibility with the existing routing and review workflows, while their index order comes from the export.
 
-![Empty dashboard](assets/screenshots/dashboard-empty.png)
-![Real model analysis of an illustrative complaint](assets/screenshots/analyzer.png)
-![Dashboard after explicitly saving a test complaint](assets/screenshots/dashboard.png)
+## Routing, database and seven pages
 
-## Architecture and project structure
+All seven pages remain: Dashboard, AI Complaint Analyzer, Complaint Management, Manual Review Queue, Batch Analysis, Model Analytics, and About the Project. The CSS, page layout, bilingual navigation, database schema, human review and routing implementation remain intact. Model-related text and evaluation provenance have been updated.
 
-```text
-Browser → Streamlit views → local tokenizer → KazRoBERTa → routing policy
-                                      ↓ explicit save / human review
-                                    SQLite + change history
-```
-
-```text
-app.py                    # application shell, language, navigation
-.streamlit/config.toml    # light theme, localhost binding, upload limit, telemetry off
-src/
-  config.py               # paths, taxonomy/config validation, limits
-  model_loader.py         # exact shared encoder and four-head architecture
-  inference.py            # single and batch prediction; no dummy fallback
-  routing.py              # confidence, review reasons, priority, example SLA
-  database.py             # versioned schema, transactions, audit, conflict detection
-  analytics.py            # metrics, filters, daily aggregation
-  translations.py         # bilingual interface and stable taxonomy labels
-  ui.py, record_ui.py      # reusable charts, cards, record editor
-  utils.py                # notebook normalization, CSV handling, time display
-views/                    # seven functional page modules
-model/                    # local ignored model artifacts
-assets/                   # CSS, original research image, UI screenshots
-data/research/            # transcribed notebook metrics and provenance
-data/complaints.sqlite3   # local runtime database, created on first use; ignored
-scripts/                  # model setup, actual inference smoke test, optional browser QA
-tests/                    # policy, model, database, and Streamlit integration tests
-```
-
-There is no separate backend server or training process. Changing sections does not create new complaint records. The supplied 1,000-row research CSV is not automatically imported into operational storage.
-
-### Exact model reconstruction
-
-The model reproduces notebook cell 15:
-
-- `encoder`: `AutoModel.from_config` using the verified RoBERTa base configuration: 6 layers, 768 hidden units, 12 attention heads, 52,000-token vocabulary.
-- Attention-mask-weighted mean over token embeddings, denominator clamped at 1.
-- One shared dropout layer with probability **0.2**.
-- `heads`: `nn.ModuleList` of four independent linear classifiers, in **category → urgency → tone → department** order.
-- The full trained state dictionary is loaded with **strict=True**; all 83,462,415 parameters come from the checkpoint before inference.
-- CPU, `model.eval()`, and `torch.inference_mode()`; no stochastic predictions.
-- Unicode NFC, removal of U+200B–U+200D and U+FEFF, whitespace cleanup; original characters, case, punctuation, and original complaint text are retained.
-- Exported tokenizer graph, dynamic padding, truncation at **96 tokens**. Truncation is disclosed in the UI; complete original text is stored after saving.
-
-The class order comes directly from the export:
-
-| Target | Labels in index order |
-|---|---|
-| Category | academic_process, administrative_services, campus_environment |
-| Urgency | high, low, medium |
-| Tone | dissatisfied, intense_negative, neutral |
-| Department | academic_affairs, facilities_office, faculty_dean_office, finance_office, security_ombudsperson, student_service_center |
-
-### Routing and priority
+The new export contains no routing settings. The application retains the established policy:
 
 ```python
 confidence = min(max(p_category), max(p_urgency), max(p_department))
 requires_review = confidence < 0.75 or p_high >= 0.30
 ```
 
-Tone confidence is intentionally excluded. Boundary values are tested. The final exported threshold of **0.75** takes precedence over the earlier notebook inference cell’s 0.60. Routing uses full-precision probabilities, not rounded display values.
+Tone is excluded from routing confidence. P(high) ≥ 0.30 raises operational priority independently of predicted urgency. Suggested SLAs remain high 4 / medium 24 / low 72 hours, based on predicted urgency; these are demonstration values, not university policy. Thresholds have not been recalibrated for the new checkpoint.
 
-Operational review priority is elevated when P(high) ≥ 0.30, even if predicted urgency is medium. The original predicted urgency is preserved. The example SLA remains tied to predicted urgency: high 4 hours, medium 24, low 72. These are **research examples, not university policy**. Potentially urgent cases need prompt human assessment regardless of an example SLA.
+SQLite keeps explicit saving, idempotent save tokens, atomic batch saves, original prediction snapshots, editable human decisions, audit history, review approval requirements and stale-edit protection. Existing records remain unchanged. `COMPLAINT_DB_PATH` selects a separate database; tests use temporary databases and do not populate operational records.
 
-“Auto-Routed” means a local assignment to the suggested department when explicitly saved. No department receives an external notification. Flagged complaints remain unassigned until human review. The UI requires review approval before advancing an outstanding flagged case to Assigned, In Progress, Resolved, or Closed.
+CSV upload limits remain 5 MB / 1,000 rows; input validation retains the 10,000-character limit. Batch inference defaults to **4**, with UI choices 1 / 2 / 4 / 8 / 16. Invalid rows retain their positions, CSV exports protect against spreadsheet formulas, and persistence remains opt-in.
 
-### Persistence and audit behavior
+The Model Analytics page presents published multilingual evaluation separately from the original Kazakh-only research comparison. They use different experiments/splits and should not be treated as a controlled comparison. New training grouped the original 1,000 complaint IDs into 700 / 150 / 150 before translation expansion. Mixed-language evaluation is synthetic. See [provenance](data/research/PROVENANCE.md).
 
-SQLite uses WAL, foreign keys, transactions, and `PRAGMA user_version` migrations. Unique save tokens make repeated save clicks idempotent; batch inserts are atomic. Status, assignment, operational urgency, and administrator notes are editable. Original predictions, full probability distributions, thresholds, and routing reasons remain in an immutable application snapshot.
+## CPU caching and Community Cloud resources
 
-Every update records previous/new status, department, urgency, previous notes, new notes, action, and UTC timestamp. A version counter detects stale edits. Resolved/Closed set resolution time; reopening clears it. The original review flag remains preserved after approval, while `reviewed_at` indicates completion.
+`st.cache_resource` shares one model per process and model path; a lock serializes inference. PyTorch uses at most two CPU threads. Model parameters alone total **1,060.7 MiB**, and `model.pt` is **1,112,274,807 bytes**. Memory mapping faults in only accessed pages, so measured resident memory can initially be lower than total parameter size; diverse vocabulary and larger batches can increase it.
 
-Statuses: New, Pending Review, Assigned, In Progress, Resolved, Closed. Timestamps are stored in UTC and displayed in Asia/Almaty. Database-derived high-priority counts include active high-urgency human decisions or P(high) ≥ 0.30; average confidence includes all saved complaints.
+[Streamlit documents approximate, changeable limits](https://docs.streamlit.io/deploy/streamlit-community-cloud/manage-your-app#resource-limits), including 690 MB–2.7 GB memory and up to two CPU cores. This full-precision model cannot be assumed to fit the smallest allocation. Verify the actual allocation in [workspace Settings → Limits](https://docs.streamlit.io/deploy/streamlit-community-cloud/manage-your-account/workspace-settings#limits), and check Cloud logs after deployment. This upgrade has been measured locally, **not deployed or measured in a Community Cloud account**.
 
-For a separate database or model directory:
+Memory-mapped assignment, the shared resource cache, serialized inference and a smaller default batch reduce overhead. There is no quantization or silent fallback to a different model. See [validation results](VALIDATION.md) for measured load time, RSS, and inference timing, including Streamlit imports and cache reuse.
 
-```bash
-COMPLAINT_DB_PATH=/absolute/path/demo.sqlite3 \
-COMPLAINT_MODEL_DIR=/absolute/path/model \
-streamlit run app.py
-```
-
-The database file is restricted to its owner where supported. It is **not encrypted**. Back up SQLite using its backup API, or stop the app before copying it; copying only the main file during WAL activity is unsafe. For a full local reset, stop the app and remove the database and any corresponding `-wal` / `-shm` files. The maintenance-only `Database.delete` method removes a complaint and its audit rows; no destructive delete button is exposed in the UI.
-
-## Research results
-
-These are **reported held-out test Macro-F1 values from 150 complaints**, verified against saved notebook outputs. They are separate from dashboard analytics.
-
-| Model | Category | Urgency | Tone | Department | Mean |
-|---|---:|---:|---:|---:|---:|
-| Linear SVM | .9867 | .9722 | 1.0000 | .9334 | **.9731** |
-| BiLSTM + Attention | .9733 | **.9790** | 1.0000 | .8642 | .9541 |
-| XLM-RoBERTa | .9798 | .9313 | .9681 | .9000 | .9448 |
-| KazRoBERTa | **.9933** | .9510 | .9844 | .9128 | .9604 |
-
-SVM achieved the highest mean F1; KazRoBERTa is deployed to demonstrate shared-encoder multi-task Transformer inference. Among 38 high-urgency test complaints, SVM/BiLSTM missed 3 each; KazRoBERTa/XLM-RoBERTa missed 5 each.
-
-Validation routing coverage / department accuracy among auto-routed cases: 0.30 → 73.33% / 88.18%; 0.60 → 56.67% / 94.12%; 0.75 → 48.00% / 97.22%; 0.85 → 28.67% / 100%. All include the additional high-urgency review rule. At 0.75, one high-urgency validation case was still incorrectly auto-routed. The small 0.85 subset’s observed 100% accuracy is not a safety guarantee.
-
-The original SVM test confusion-matrix image was extracted from the notebook. Other models’ numerical matrices are unavailable and are not fabricated. See [artifact provenance](data/research/PROVENANCE.md).
-
-## Testing
+Reproduce resource measurements (macOS/Linux):
 
 ```bash
-pip install -r requirements-dev.txt
-python -m pytest -q
-python scripts/smoke_test.py
+python scripts/smoke_test.py --offline --output /tmp/xlmr-runtime.json
+python scripts/smoke_test.py --offline --streamlit-cache --output /tmp/xlmr-streamlit-runtime.json
 ```
 
-The suite covers normalization, blank/invalid input, strict real checkpoint loading, four output shapes, label mappings, real single/batch probability consistency, masked padding, truncation, routing boundaries, CSV validation, database CRUD and audit, transaction rollback, duplicate saves, review approval, stale-edit protection, all seven sections in both languages, and analyzer/batch UI save workflows.
+The benchmark separates Python imports, local model loading, four-language inference and a batch of four inputs at the full token limit. Downloads are excluded from offline timings. `rss_mib` is null if process inspection is blocked; peak RSS remains available.
 
-Model-dependent tests use the real checkpoint, never a substitute model. If artifacts are absent, these tests are explicitly skipped; a skipped model test is not proof of working inference. Test databases are temporary and never populate your application database. Streamlit UI tests use [the official AppTest API](https://docs.streamlit.io/develop/api-reference/app-testing/st.testing.v1.apptest).
+## Tests and troubleshooting
 
-Optional visual QA, using installed Google Chrome on macOS:
+`python -m pytest -q` covers real multilingual inference and batch consistency, strict CPU loading, tokenizer parity, label-order validation, cached/offline artifact reuse, partial-download recovery, original routing boundaries, SQLite audit/review behavior and all seven pages in both UI languages. Missing weights explicitly skip dependent tests; that does not validate inference. The checked-in example complaints are illustrative, not real university records.
 
-```bash
-pip install playwright
-COMPLAINT_DB_PATH=/tmp/university-complaints-visual-qa.sqlite3 streamlit run app.py
-# In another terminal, with the virtual environment active:
-python scripts/browser_check.py
-```
+- Download failure: retry setup; completed local files are retained.
+- Old configuration or checkpoint mismatch: use a fresh directory for the pinned multilingual export. The loader fails instead of producing substitute predictions.
+- Memory pressure: use batch size 1 or 2 and inspect the hosting allocation.
+- Flagged record cannot advance: approve it in Manual Review Queue first.
+- Stale-record conflict: reload the record before reapplying changes.
 
-Use a fresh disposable database: this script saves an illustrative complaint. It captures desktop/mobile screenshots, navigates the seven sections, and checks browser exceptions and horizontal overflow. It does not require downloading another browser.
-
-## Responsible AI and privacy
-
-- The dataset has 1,000 Kazakh complaints split 700/150/150 with seed 42, stratified by category × urgency. Similar textual patterns across the non-group-aware split may inflate generalization estimates.
-- Softmax values are uncalibrated, not guaranteed correctness. The 150-case test set and limited training runs cannot establish real-world safety or fine-grained model superiority.
-- Human review is required for uncertain or potentially urgent routing. This is not a monitored emergency channel and cannot autonomously resolve critical safety incidents.
-- Use anonymized demonstration texts. No external analytics tracking or complaint-content logging is implemented. Streamlit usage statistics are disabled.
-- Uploads stay in server memory, are capped at 5 MB / 1,000 rows, and are parsed as UTF-8 CSV. Individual texts are capped at 10,000 characters. Numeric, empty, and missing text values are rejected as row errors.
-- CSV exports neutralize leading spreadsheet formula characters; source text in the database is unchanged. Exports can still contain sensitive information and need careful handling.
-- No authentication, encryption, institution-approved policy, retention automation, or real department integrations are implied. These must be designed before any institutional deployment.
-
-## Troubleshooting
-
-| Symptom | Action |
-|---|---|
-| Model download failed | Check Hub/network access and retry analysis, or run `python scripts/setup_model.py`. Existing files are retained. Offline setup supports a trusted ZIP and `--encoder-config`. |
-| Cannot obtain base configuration | Use `--encoder-config` with a previously downloaded file; do not substitute the app config. |
-| Checkpoint key/shape mismatch | Verify the original trained multi-task export and base config. The loader intentionally fails instead of generating dummy results. |
-| Wrong Python / no compatible PyTorch wheel | Use native Apple Silicon Python 3.11 on macOS 14+. Older OS versions require a separately validated compatible PyTorch environment. |
-| First prediction is slow | The CPU model is loaded once per process. Later predictions reuse the cached resource. |
-| Memory pressure during CSV inference | Choose batch size 4 or 8. |
-| Text was truncated | Only the first 96 tokens reach the model. Review the full text manually. |
-| Cannot advance a flagged record | Approve it in Manual Review Queue, including a selected assigned department. |
-| Stale-record conflict | Reload the record before reapplying edits; someone or another tab changed it. |
-| Port 8501 is occupied | Stop the existing server, or use `streamlit run app.py --server.port 8502`. |
-| No dashboard charts | Save at least one analyzed complaint; charts are never seeded with invented data. |
-
-## Verified delivery
-
-The automatic Hub loading update was verified on 2026-11-10 with **44 passing tests**, including the existing seven-page Streamlit tests and real-checkpoint integration tests. A separate empty-directory test downloaded the published model automatically, loaded it on CPU, and analyzed a real Kazakh complaint; an offline reload produced identical probabilities. The smoke script passed on three Kazakh complaints (scheduling, dormitory hot water, and tuition payment). All five downloaded artifacts matched the recorded [SHA-256 checksums](data/research/model_checksums.json).
-
-A Linux x86_64 / Python 3.11 dependency dry run selected `torch==2.15.0+cpu` and no NVIDIA, CUDA, cuDNN, or Triton packages. Runtime tests ran on Apple Silicon macOS with CPU inference; the live Community Cloud deployment was not changed by these local checks.
-
-The earlier delivery also included a Chrome navigation/rendering check and desktop/mobile screenshots. See [VALIDATION.md](VALIDATION.md) for that earlier verification scope and remaining limitations.
+The app has no authentication or encrypted database storage. Softmax scores are uncalibrated; human review remains necessary. Original browser screenshots and historical validation are retained as older artifacts, not evidence of a new Cloud deployment.

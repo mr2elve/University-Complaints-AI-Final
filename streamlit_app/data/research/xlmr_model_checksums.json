@@ -1,0 +1,52 @@
+{
+  "repo": "mr2elve/xlmr-university-complaints-multilingual",
+  "revision": "f15eb91b1b494b4ed92978a89b1f628e338b0ce3",
+  "subfolder": "XLMR_Multilingual_University_Complaints",
+  "encoder_config_source": "FacebookAI/xlm-roberta-base/config.json",
+  "files": {
+    "README.md": {
+      "bytes": 633,
+      "sha256": "e6ee7d4ecba8422f590cdeedf04f44b4f08f555ed199d41b145006498840d927"
+    },
+    "config.json": {
+      "bytes": 2078,
+      "sha256": "178a9ed0e06c1ac087433874a379a5bdbe602343e8d55db9d258db1514903417"
+    },
+    "encoder_config.json": {
+      "bytes": 615,
+      "sha256": "d66ed8cd4f2a93b358c245e50736fa389ed4f35c0bae7aad0b32abb20c62b579"
+    },
+    "metrics_by_language.csv": {
+      "bytes": 347,
+      "sha256": "7b7685eaf60f4fa6c7b70f9768877368404ba2eae2e553e46a50d954b35f85e4"
+    },
+    "mixed_synthetic_metrics.json": {
+      "bytes": 181,
+      "sha256": "d42385390423c15b4ac02c99b0a0f37400c08b2b9cf40ef57cbd3151aedaad5f"
+    },
+    "model.pt": {
+      "bytes": 1112274807,
+      "sha256": "078d6771220e4ad80523091bddebd12f258a90c3a7da846cf8e775db77c3e5b3"
+    },
+    "sentencepiece.bpe.model": {
+      "bytes": 5069051,
+      "sha256": "cfc8146abe2a0488e9e2a0c56de7952f7c11ab059eca145a0a727afce0db2865"
+    },
+    "special_tokens_map.json": {
+      "bytes": 280,
+      "sha256": "06e405a36dfe4b9604f484f6a1e619af1a7f7d09e34a8555eb0b77b66318067f"
+    },
+    "tokenizer.json": {
+      "bytes": 17082832,
+      "sha256": "e63c7a5faf7f3257542d756311f64572a52913c2845c4a3849529e1ef87f8eef"
+    },
+    "tokenizer_config.json": {
+      "bytes": 1178,
+      "sha256": "ccf223ba3d5b3cc7fa6c3bf451f3bb40557a5c92b0aa33f63d17802ff1a96fd9"
+    },
+    "train_history.csv": {
+      "bytes": 571,
+      "sha256": "94a3043b9f957f1bc620970da04a26a50ba80ac052667e77570b70a1b1523e13"
+    }
+  }
+}

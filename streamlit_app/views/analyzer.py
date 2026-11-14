@@ -23,8 +23,8 @@ def render(db):
     for col,(en,kk,text) in zip(st.columns(5), SAMPLES):
         col.button(t(en,kk), on_click=set_sample,args=(text,),width='stretch')
     with st.form('analyze_form'):
-        text=st.text_area(t('Complaint in Kazakh','Қазақша шағым'),key='complaint_input',height=180,max_chars=10000,placeholder='Мәселеңізді осында жазыңыз…')
-        st.caption(t('Text stays in this local app. Analysis is not saved until you choose Save. Only the first 96 model tokens are analyzed.','Мәтін осы жергілікті қолданбада қалады. «Сақтау» таңдағанға дейін талдау дерекқорға жазылмайды. Алғашқы 96 модель токені ғана талданады.'))
+        text=st.text_area(t('Complaint · Kazakh, Russian, English or mixed','Шағым · қазақша, орысша, ағылшынша немесе аралас'),key='complaint_input',height=180,max_chars=10000,placeholder='Мәселеңізді осында жазыңыз…')
+        st.caption(t('Text stays in this local app. Analysis is not saved until you choose Save. Long texts are truncated to the model token limit.','Мәтін осы жергілікті қолданбада қалады. «Сақтау» таңдағанға дейін талдау дерекқорға жазылмайды. Ұзын мәтіндер модельдің токен шегіне дейін қысқартылады.'))
         analyze=st.form_submit_button(t('Analyze Complaint','Шағымды талдау'),type='primary',width='stretch')
     if analyze:
         st.session_state.pop('analysis',None)

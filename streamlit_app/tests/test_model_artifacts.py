@@ -1,5 +1,6 @@
 """Network-independent setup tests; actual predictions use the real checkpoint."""
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -8,30 +9,20 @@ import zipfile
 import pytest
 
 from src import model_artifacts as artifacts
-from src.config import DEPARTMENTS, ROOT, TARGETS, read_config
+from src.config import DEPARTMENTS, ROOT, TARGETS, MODEL_SUBFOLDER, ENCODER_REPO_ID, read_config
 from src.model_loader import load_model
 
 
 @pytest.fixture
 def export_files():
-    labels = (
-        ('academic_process', 'administrative_services', 'campus_environment'),
-        ('high', 'low', 'medium'),
-        ('dissatisfied', 'intense_negative', 'neutral'),
-        DEPARTMENTS,
-    )
-    config = {
-        'model_name': 'kz-transformers/kaz-roberta-conversational',
-        'targets': list(TARGETS),
-        'label_maps': {task: dict(zip(names, range(len(names)))) for task, names in zip(TARGETS, labels)},
-        'confidence_threshold': .75, 'urgent_review_threshold': .3, 'max_length': 96,
-    }
+    config = json.loads((Path(__file__).parent / 'fixtures/xlmr_config.json').read_text())
     # Placeholders exercise file transport only; never passed to inference.
     return {
         'config.json': json.dumps(config).encode(),
         'model.pt': b'transport test placeholder, not a checkpoint',
         'tokenizer.json': b'{}', 'tokenizer_config.json': b'{}',
-        'encoder_config.json': b'{"model_type": "roberta", "hidden_size": 768}',
+        'special_tokens_map.json': b'{}', 'sentencepiece.bpe.model': b'transport-only',
+        'encoder_config.json': b'{"model_type": "xlm-roberta", "hidden_size": 768}',
     }
 
 
@@ -45,11 +36,11 @@ def install(path, files):
 def hub(monkeypatch, export_files):
     calls = []
 
-    def download(*, repo_id, filename, revision, local_dir):
-        calls.append((repo_id, filename, revision, Path(local_dir)))
-        key = 'encoder_config.json' if repo_id.startswith('kz-transformers/') else filename
-        install(Path(local_dir), {filename: export_files[key]})
-        return str(Path(local_dir) / filename)
+    def download(*, repo_id, filename, revision, cache_dir, subfolder):
+        calls.append((repo_id, filename, revision, Path(cache_dir), subfolder))
+        key = 'encoder_config.json' if repo_id == ENCODER_REPO_ID else filename
+        install(Path(cache_dir), {filename: export_files[key]})
+        return str(Path(cache_dir) / filename)
 
     monkeypatch.setattr(artifacts, 'hf_hub_download', download)
     return calls
@@ -59,11 +50,11 @@ def test_empty_directory_downloads_only_required_artifacts(tmp_path, hub, export
     path = tmp_path / 'model'
     config = artifacts.ensure_model_artifacts(path, repo_id='owner/trained', revision='commit-sha')
     assert config == read_config(path)
-    assert [(repo, name, revision) for repo, name, revision, _ in hub] == [
+    assert [(repo, name, revision) for repo, name, revision, _, _ in hub] == [
         *[('owner/trained', name, 'commit-sha') for name in artifacts.EXPORT_FILES],
-        ('kz-transformers/kaz-roberta-conversational', 'config.json', 'main'),
+        (ENCODER_REPO_ID, 'config.json', 'main'),
     ]
-    assert [directory for *_, directory in hub] == [path] * 4 + [path / '.cache' / 'encoder']
+    assert [folder for *_, folder in hub] == [MODEL_SUBFOLDER] * len(artifacts.EXPORT_FILES) + [None]
     for name, data in export_files.items():
         assert (path / name).read_bytes() == data
     assert not list(path.glob('*.tmp'))
@@ -76,11 +67,29 @@ def test_complete_local_installation_never_contacts_hub(tmp_path, hub, export_fi
     assert hub == []
 
 
+def test_hub_snapshot_symlinks_remain_valid_after_install(tmp_path, hub, monkeypatch, export_files):
+    download = artifacts.hf_hub_download
+
+    def snapshot_download(**kwargs):
+        blob = Path(download(**kwargs))
+        snapshot = blob.parent / 'snapshots' / 'revision'
+        snapshot.mkdir(parents=True, exist_ok=True)
+        link = snapshot / blob.name
+        link.symlink_to(os.path.relpath(blob, snapshot))
+        return str(link)
+
+    monkeypatch.setattr(artifacts, 'hf_hub_download', snapshot_download)
+    artifacts.ensure_model_artifacts(tmp_path)
+    for name, data in export_files.items():
+        assert (tmp_path / name).read_bytes() == data
+        assert not (tmp_path / name).is_symlink()
+
+
 def test_partial_installation_keeps_local_weights_and_config(tmp_path, hub, export_files):
     install(tmp_path, {'config.json': export_files['config.json']})
     (tmp_path / 'model.pt').write_bytes(b'existing local weights must not be replaced')
     artifacts.ensure_model_artifacts(tmp_path)
-    assert [name for _, name, _, _ in hub] == ['tokenizer.json', 'tokenizer_config.json', 'config.json']
+    assert [name for _, name, _, _, _ in hub] == ['tokenizer.json', 'tokenizer_config.json', 'special_tokens_map.json', 'sentencepiece.bpe.model', 'config.json']
     assert (tmp_path / 'model.pt').read_bytes() == b'existing local weights must not be replaced'
     assert (tmp_path / 'config.json').read_bytes() == export_files['config.json']
 
@@ -111,14 +120,14 @@ def test_download_failure_preserves_files_and_retry_fetches_only_missing(tmp_pat
     hub.clear()
     monkeypatch.setattr(artifacts, 'hf_hub_download', download)
     artifacts.ensure_model_artifacts(tmp_path)
-    assert [name for _, name, _, _ in hub] == ['model.pt', 'tokenizer.json', 'tokenizer_config.json', 'config.json']
+    assert [name for _, name, _, _, _ in hub] == ['model.pt', 'tokenizer.json', 'tokenizer_config.json', 'special_tokens_map.json', 'sentencepiece.bpe.model', 'config.json']
 
 
 def test_invalid_task_config_stops_before_weight_download(tmp_path, hub, export_files):
     config = json.loads(export_files['config.json'])
-    config['targets'].reverse()
+    config['tasks'] = ['category'] * 4
     install(tmp_path, {'config.json': json.dumps(config).encode()})
-    with pytest.raises(ValueError, match='head order'):
+    with pytest.raises(ValueError, match='tasks'):
         artifacts.ensure_model_artifacts(tmp_path)
     assert hub == []
 
@@ -146,3 +155,38 @@ def test_local_archive_setup_still_works_offline(tmp_path, export_files):
     assert result.returncode == 0, result.stderr
     for name, data in export_files.items():
         assert (destination / name).read_bytes() == data
+
+
+def test_export_label_order_and_task_order_are_preserved(tmp_path, export_files):
+    config = json.loads(export_files['config.json'])
+    config['tasks'].reverse()
+    for task, names in config['label_names'].items():
+        names.reverse()
+        config['label2id'][task] = {name: i for i, name in enumerate(names)}
+        config['id2label'][task] = {str(i): name for i, name in enumerate(names)}
+    raw = json.dumps(config).encode()
+    install(tmp_path, {'config.json': raw})
+    actual = read_config(tmp_path)
+    assert actual['targets'] == config['tasks']
+    assert actual['label_maps'] == config['label2id']
+    assert actual['confidence_threshold'] == .75
+    assert actual['urgent_review_threshold'] == .30
+    assert actual['sla_hours'] == {'high': 4, 'medium': 24, 'low': 72}
+    assert (tmp_path / 'config.json').read_bytes() == raw
+
+
+@pytest.mark.parametrize('change', ['old_encoder', 'pooling', 'labels', 'length'])
+def test_incompatible_export_fails_before_download(tmp_path, hub, export_files, change):
+    config = json.loads(export_files['config.json'])
+    if change == 'old_encoder':
+        config['base_model'] = 'kz-transformers/kaz-roberta-conversational'
+    elif change == 'pooling':
+        config['pooling'] = 'cls'
+    elif change == 'labels':
+        config['label2id']['category']['academic_process'] = 2
+    else:
+        config['max_length'] = 1024
+    install(tmp_path, {'config.json': json.dumps(config).encode()})
+    with pytest.raises(ValueError):
+        artifacts.ensure_model_artifacts(tmp_path)
+    assert hub == []

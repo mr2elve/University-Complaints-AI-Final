@@ -3,6 +3,7 @@ streamlit==1.67.0
 --extra-index-url https://download.pytorch.org/whl/cpu
 torch==2.15.0+cpu; sys_platform != "darwin"
 torch==2.15.0; sys_platform == "darwin"
+# XLM-R uses the exported fast tokenizer graph; no SentencePiece conversion is needed.
 transformers==4.57.6
 huggingface_hub==0.36.2
 pandas==2.3.3

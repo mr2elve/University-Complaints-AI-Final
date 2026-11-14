@@ -1,14 +1,13 @@
-The application automatically downloads missing trained artifacts from
-https://huggingface.co/mr2elve/kazroberta-university-complaints on first model load.
-To download ahead of time, run `python scripts/setup_model.py` from `streamlit_app/`.
+The multilingual model is installed under `xlmr/XLMR_Multilingual_University_Complaints/`.
+The older KazRoBERTa artifacts in this directory are retained and are not loaded.
 
-Required: `model.pt`, `config.json` (application config), `tokenizer.json`, `tokenizer_config.json`, and `encoder_config.json` (base Transformer architecture).
-The loader and setup script preserve existing local files. They download only the
-four trained export files plus the small base architecture config when absent;
-they never download base encoder weights or retrain the model. Hugging Face
-download metadata stays under `.cache/` here. A complete installation works offline.
+Run `python scripts/setup_model.py` from `streamlit_app/`, or let the first analysis
+fetch missing artifacts. Source: `mr2elve/xlmr-university-complaints-multilingual`,
+subfolder `XLMR_Multilingual_University_Complaints`, pinned revision
+`f15eb91b1b494b4ed92978a89b1f628e338b0ce3`.
 
-For an offline ZIP installation, use `python scripts/setup_model.py /path/to/KazRoBERTa_Trained_Model.zip --encoder-config /path/to/encoder_config.json --offline`.
-
-`COMPLAINT_MODEL_DIR` overrides this directory. Model artifacts and their cache are
-ignored by Git. See the application README for repository/revision overrides.
+Required export files: `model.pt`, `config.json`, `tokenizer.json`,
+`tokenizer_config.json`, `special_tokens_map.json`, `sentencepiece.bpe.model`.
+The additional `encoder_config.json` comes from `FacebookAI/xlm-roberta-base`;
+base encoder weights are never downloaded. Complete local installations work offline.
+Weights and caches are Git-ignored. See `../README.md` for setup, overrides and resources.
